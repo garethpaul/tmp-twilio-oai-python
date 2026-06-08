@@ -12,3 +12,5 @@
 - Changed the generated default host from `/` to `https://api.twilio.com`.
 - Added package repository metadata and verified generated Python artifacts stay
   ignored by the existing ignore rules.
+- Added canonical `docs/plans` coverage and a docs-plan checker under
+  `make check`.

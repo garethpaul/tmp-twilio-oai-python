@@ -18,6 +18,7 @@ Priority:
 - Keep OpenAPI Generator metadata available
 - Avoid hand-editing generated files without a regeneration note
 - Keep credentials as runtime configuration only
+- Keep completed maintenance plans under `docs/plans`
 
 Next priorities:
 

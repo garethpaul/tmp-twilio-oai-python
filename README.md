@@ -12,9 +12,14 @@ This README is based on the checked-in source, manifests, scripts, and repositor
 ## Repository Contents
 
 - `README.md` - project overview and local usage notes
+- `CHANGES.md` - maintenance history for generated-client checks
+- `Makefile` - local verification entry points
 - `requirements.txt` - Python dependency or packaging metadata
 - `docs` - source or example code
+- `docs/plans` - completed maintenance plans for the current baseline
 - `openapi_client` - source or example code
+- `plans` - historical implementation notes
+- `scripts` - documentation-plan validators
 - `SECURITY.md` - security reporting and disclosure guidance
 - `setup.py` - Python dependency or packaging metadata
 - `test` - source or example code
@@ -25,7 +30,7 @@ Additional scan context:
 - Source directories: docs, openapi_client, test
 - Dependency and build manifests: requirements.txt, setup.py
 - Entry points or build surfaces: none detected
-- Test-looking files: no obvious test files detected
+- Test-looking files: test/test_auth_configuration.py, test/test_configuration_defaults.py, generated tests under test/
 
 ## Getting Started
 
@@ -56,6 +61,7 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   `setup.py check`.
 - The pytest suite includes no-network checks for default host configuration
   and runtime-only Basic auth headers.
+- `make check` also requires completed canonical plans under `docs/plans`.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
 
@@ -76,6 +82,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
 
 - See `SECURITY.md` for vulnerability reporting and safe research guidance.
 - See `VISION.md` for project direction and contribution guardrails.
+- See `docs/plans/2026-06-08-tmp-twilio-oai-python-baseline.md` for the
+  canonical generated-client verification baseline.
 
 ## Contributing
 
