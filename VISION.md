@@ -45,3 +45,6 @@ configuration should remain explicit.
 - Manual generated-code edits without provenance
 - Live-account tests as the only verification path
 - Claims of support without a regeneration process
+
+This list is a roadmap guardrail, not a permanent rule.
+Strong user demand and strong technical rationale can change it.
