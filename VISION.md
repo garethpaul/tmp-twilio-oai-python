@@ -39,7 +39,7 @@ Generated API clients can perform real account operations. Examples should use
 placeholders, tests should avoid live network calls by default, and credential
 configuration should remain explicit.
 
-## What We Will Not Merge For Now
+## What We Will Not Merge (For Now)
 
 - Checked-in credentials or account data
 - Manual generated-code edits without provenance
