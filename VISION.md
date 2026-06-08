@@ -39,7 +39,6 @@ Canonical security policy and reporting:
 
 - [`SECURITY.md`](SECURITY.md)
 
-
 Generated API clients can perform real account operations. Examples should use
 placeholders, tests should avoid live network calls by default, and credential
 configuration should remain explicit.
