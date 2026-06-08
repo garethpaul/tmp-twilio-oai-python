@@ -32,7 +32,7 @@ Additional scan context:
 ### Prerequisites
 
 - Git
-- Python matching the era of the project
+- Python 3.6 or newer
 
 ### Setup
 
@@ -46,11 +46,14 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 
 ## Running or Using the Project
 
-- No single runtime entry point was identified. Start by reading the source files and manifests listed above.
+- Import `openapi_client.Configuration` and provide Twilio credentials through
+  the generated basic-auth configuration. The default API host is
+  `https://api.twilio.com`.
 
 ## Testing and Verification
 
-- No dedicated automated test command was identified from the checked-in files. Verify changes by running the relevant build or manually exercising the sample.
+- `make verify` runs Python syntax checks, the generated pytest suite, and
+  `setup.py check`.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
 

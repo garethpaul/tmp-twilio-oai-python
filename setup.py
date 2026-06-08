@@ -32,7 +32,7 @@ setup(
     description="Twilio - Api",
     author="Twilio Support",
     author_email="support@twilio.com",
-    url="",
+    url="https://github.com/garethpaul/tmp-twilio-oai-python",
     keywords=["OpenAPI", "OpenAPI-Generator", "Twilio - Api"],
     python_requires=">=3.6",
     install_requires=REQUIRES,
