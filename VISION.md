@@ -24,7 +24,7 @@ Next priorities:
 - Document the exact OpenAPI input spec and generator command
 - Add a regeneration script or Makefile target
 - Clarify whether the repository is temporary, experimental, or maintained
-- Add smoke tests that do not call live Twilio APIs
+- Expand smoke tests that do not call live Twilio APIs
 
 Contribution rules:
 
