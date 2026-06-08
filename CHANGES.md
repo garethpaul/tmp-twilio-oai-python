@@ -2,6 +2,7 @@
 
 ## 2026-06-08
 
+- Added `make check` as the shared repository verification alias.
 - Added no-network auth smoke tests confirming generated clients do not send an
   Authorization header by default and only build Basic auth from runtime
   credentials.

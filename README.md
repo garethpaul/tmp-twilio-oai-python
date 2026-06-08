@@ -52,7 +52,7 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 
 ## Testing and Verification
 
-- `make verify` runs Python syntax checks, the generated pytest suite, and
+- `make check` runs Python syntax checks, the generated pytest suite, and
   `setup.py check`.
 - The pytest suite includes no-network checks for default host configuration
   and runtime-only Basic auth headers.
