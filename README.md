@@ -63,7 +63,8 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   and runtime-only, trimmed, non-empty Basic auth headers. It also covers API
   exception body handling so client errors are not masked by response decoding,
   and query auth parameter handling for requests with no preexisting query
-  list.
+  list. Basic auth tests also ensure credentials are not attached to non-local
+  plain HTTP hosts.
 - `make check` also requires completed canonical plans under `docs/plans`.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
@@ -91,6 +92,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   blank-credential guard.
 - See `docs/plans/2026-06-08-trim-basic-auth.md` for the whitespace credential
   guard.
+- See `docs/plans/2026-06-09-basic-auth-host-scheme.md` for the Basic auth
+  host-scheme guard.
 - See `docs/plans/2026-06-09-api-exception-body.md` for the API exception body
   preservation guard.
 - See `docs/plans/2026-06-09-query-auth-parameters.md` for the query auth

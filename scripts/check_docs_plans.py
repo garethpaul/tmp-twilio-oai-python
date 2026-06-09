@@ -23,6 +23,12 @@ def main():
         if "Status: Completed" not in plan or "make check" not in plan:
             failures.append(f"{plan_path.relative_to(ROOT)} must record completed status and make check verification")
 
+    configuration = (ROOT / "openapi_client" / "configuration.py").read_text(encoding="utf-8")
+    if "def host_allows_basic_auth(self):" not in configuration:
+        failures.append("openapi_client/configuration.py must guard Basic auth by host scheme")
+    if "LOCAL_BASIC_AUTH_HOSTS" not in configuration:
+        failures.append("openapi_client/configuration.py must allow explicit local Basic auth hosts")
+
     if failures:
         print("Documentation plan checks failed:", file=sys.stderr)
         for failure in failures:

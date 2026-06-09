@@ -19,6 +19,7 @@ Priority:
 - Avoid hand-editing generated files without a regeneration note
 - Keep credentials as runtime configuration only
 - Avoid emitting auth headers from missing, blank, or whitespace runtime credentials
+- Avoid sending Basic auth credentials to non-local plain HTTP hosts
 - Keep generated auth parameter mutation safe when query strings start empty
 - Preserve API exceptions when response bodies are missing or already decoded
 - Keep completed maintenance plans under `docs/plans`
@@ -52,6 +53,7 @@ configuration should remain explicit.
 - Checked-in credentials or account data
 - Manual generated-code edits without provenance
 - Live-account tests as the only verification path
+- Basic auth over non-local plain HTTP hosts
 - Error handling that masks generated client API exceptions
 - Claims of support without a regeneration process
 

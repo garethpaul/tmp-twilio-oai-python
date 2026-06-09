@@ -2,6 +2,8 @@
 
 ## 2026-06-09
 
+- Prevented Basic auth headers from being attached to non-local plain HTTP hosts
+  while preserving HTTPS and local-development hosts.
 - Initialized missing query parameter lists before applying query-based auth
   settings.
 - Added no-network regression coverage for query auth on requests that start

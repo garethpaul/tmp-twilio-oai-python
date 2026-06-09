@@ -85,3 +85,52 @@ def test_basic_auth_header_trims_runtime_credentials():
     expected = base64.b64encode(b"AC123:secret").decode("ascii")
     assert headers["Authorization"] == "Basic %s" % expected
     assert query_params == []
+
+
+def test_basic_auth_header_not_sent_to_non_local_http_host():
+    client = ApiClient(
+        Configuration(
+            host="http://api.example.test",
+            username="AC123",
+            password="secret",
+        )
+    )
+    headers = {}
+    query_params = []
+
+    client.update_params_for_auth(
+        headers,
+        query_params,
+        ["accountSid_authToken"],
+        "/2010-04-01/Accounts.json",
+        "GET",
+        None,
+    )
+
+    assert "Authorization" not in headers
+    assert query_params == []
+
+
+def test_basic_auth_header_allowed_for_local_http_host():
+    client = ApiClient(
+        Configuration(
+            host="http://localhost:8080",
+            username="AC123",
+            password="secret",
+        )
+    )
+    headers = {}
+    query_params = []
+
+    client.update_params_for_auth(
+        headers,
+        query_params,
+        ["accountSid_authToken"],
+        "/2010-04-01/Accounts.json",
+        "GET",
+        None,
+    )
+
+    expected = base64.b64encode(b"AC123:secret").decode("ascii")
+    assert headers["Authorization"] == "Basic %s" % expected
+    assert query_params == []
