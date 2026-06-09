@@ -368,14 +368,10 @@ conf = openapi_client.Configuration(
 
         :return: The token for basic HTTP authentication.
         """
-        if not self.username or not self.password:
+        username = self.username.strip() if self.username is not None else ""
+        password = self.password.strip() if self.password is not None else ""
+        if not username or not password:
             return None
-        username = ""
-        if self.username is not None:
-            username = self.username
-        password = ""
-        if self.password is not None:
-            password = self.password
         return urllib3.util.make_headers(
             basic_auth=username + ':' + password
         ).get('authorization')

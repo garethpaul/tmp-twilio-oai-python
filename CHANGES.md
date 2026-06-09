@@ -2,6 +2,8 @@
 
 ## 2026-06-08
 
+- Trimmed runtime Basic auth credentials and rejected whitespace-only username
+  or password values with no-network regression coverage.
 - Prevented blank Basic auth username/password values from emitting
   Authorization headers, with no-network regression coverage.
 - Added `make check` as the shared repository verification alias.

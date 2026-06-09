@@ -60,7 +60,7 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 - `make check` runs Python syntax checks, the generated pytest suite, and
   `setup.py check`.
 - The pytest suite includes no-network checks for default host configuration
-  and runtime-only, non-empty Basic auth headers.
+  and runtime-only, trimmed, non-empty Basic auth headers.
 - `make check` also requires completed canonical plans under `docs/plans`.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
@@ -86,6 +86,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   canonical generated-client verification baseline.
 - See `docs/plans/2026-06-08-nonempty-basic-auth.md` for the Basic auth
   blank-credential guard.
+- See `docs/plans/2026-06-08-trim-basic-auth.md` for the whitespace credential
+  guard.
 
 ## Contributing
 

@@ -18,7 +18,7 @@ Priority:
 - Keep OpenAPI Generator metadata available
 - Avoid hand-editing generated files without a regeneration note
 - Keep credentials as runtime configuration only
-- Avoid emitting auth headers from missing or blank runtime credentials
+- Avoid emitting auth headers from missing, blank, or whitespace runtime credentials
 - Keep completed maintenance plans under `docs/plans`
 
 Next priorities:
