@@ -2,6 +2,8 @@
 
 ## 2026-06-09
 
+- Preserved repeated query parameter values when write requests append generated
+  query params into URLs.
 - Fixed write-method query parameter appending so URLs with existing query
   strings use `&` instead of a second `?`.
 - Added no-network regression coverage for write requests with existing query

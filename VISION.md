@@ -24,6 +24,7 @@ Priority:
 - Avoid mutating caller-owned REST request headers
 - Keep write-method query strings valid when operation URLs already include
   query parameters
+- Preserve repeated query parameter values during write request URL preparation
 - Preserve API exceptions when response bodies are missing or already decoded
 - Keep completed maintenance plans under `docs/plans`
 

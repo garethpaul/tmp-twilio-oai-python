@@ -29,7 +29,7 @@ def _append_query_params(url, query_params):
         return url
 
     parsed = urlsplit(url)
-    encoded_params = urlencode(query_params)
+    encoded_params = urlencode(query_params, doseq=True)
     query = parsed.query
     if query:
         query = query + '&' + encoded_params

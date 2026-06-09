@@ -7,6 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DOCS_PLANS = ROOT / "docs" / "plans"
 CANONICAL_PLAN = DOCS_PLANS / "2026-06-08-tmp-twilio-oai-python-baseline.md"
 QUERY_APPEND_PLAN = DOCS_PLANS / "2026-06-09-write-query-append.md"
+REPEATED_QUERY_PLAN = DOCS_PLANS / "2026-06-09-repeated-write-query-params.md"
 
 
 def main():
@@ -16,6 +17,8 @@ def main():
         failures.append("docs/plans/2026-06-08-tmp-twilio-oai-python-baseline.md is missing")
     if not QUERY_APPEND_PLAN.exists():
         failures.append("docs/plans/2026-06-09-write-query-append.md is missing")
+    if not REPEATED_QUERY_PLAN.exists():
+        failures.append("docs/plans/2026-06-09-repeated-write-query-params.md is missing")
 
     plans = sorted(DOCS_PLANS.glob("*.md")) if DOCS_PLANS.exists() else []
     if not plans:
@@ -37,6 +40,8 @@ def main():
         failures.append("openapi_client/rest.py must copy caller headers before mutation")
     if "def _append_query_params(url, query_params):" not in rest:
         failures.append("openapi_client/rest.py must keep query appending in a helper")
+    if "urlencode(query_params, doseq=True)" not in rest:
+        failures.append("openapi_client/rest.py must preserve repeated write query parameters")
     if "url = _append_query_params(url, query_params)" not in rest:
         failures.append("write requests must append query parameters without duplicating '?'")
 

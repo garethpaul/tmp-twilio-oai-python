@@ -77,3 +77,19 @@ def test_write_request_appends_query_params_to_existing_query_string():
         client.pool_manager.calls[0]["url"]
         == "https://api.twilio.com/2010-04-01/Messages.json?Page=1&PageSize=50"
     )
+
+
+def test_write_request_appends_repeated_query_params():
+    client = client_with_capturing_pool()
+
+    client.request(
+        "POST",
+        "https://api.twilio.com/2010-04-01/Messages.json",
+        headers={"Content-Type": "application/json"},
+        query_params=[("Status", ["queued", "sent"])],
+    )
+
+    assert (
+        client.pool_manager.calls[0]["url"]
+        == "https://api.twilio.com/2010-04-01/Messages.json?Status=queued&Status=sent"
+    )
