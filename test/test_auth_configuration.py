@@ -22,6 +22,30 @@ def test_basic_auth_not_sent_without_runtime_credentials():
     assert query_params == []
 
 
+def test_basic_auth_not_sent_with_blank_runtime_credentials():
+    for configuration in (
+        Configuration(username="", password="secret"),
+        Configuration(username="AC123", password=""),
+        Configuration(username="", password=""),
+    ):
+        client = ApiClient(configuration)
+        headers = {}
+        query_params = []
+
+        client.update_params_for_auth(
+            headers,
+            query_params,
+            ["accountSid_authToken"],
+            "/2010-04-01/Accounts.json",
+            "GET",
+            None,
+        )
+
+        assert configuration.get_basic_auth_token() is None
+        assert "Authorization" not in headers
+        assert query_params == []
+
+
 def test_basic_auth_header_uses_runtime_credentials():
     client = ApiClient(Configuration(username="AC123", password="secret"))
     headers = {}

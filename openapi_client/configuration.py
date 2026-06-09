@@ -368,6 +368,8 @@ conf = openapi_client.Configuration(
 
         :return: The token for basic HTTP authentication.
         """
+        if not self.username or not self.password:
+            return None
         username = ""
         if self.username is not None:
             username = self.username
@@ -384,12 +386,13 @@ conf = openapi_client.Configuration(
         :return: The Auth Settings information dict.
         """
         auth = {}
-        if self.username is not None and self.password is not None:
+        basic_auth_token = self.get_basic_auth_token()
+        if basic_auth_token:
             auth['accountSid_authToken'] = {
                 'type': 'basic',
                 'in': 'header',
                 'key': 'Authorization',
-                'value': self.get_basic_auth_token()
+                'value': basic_auth_token
             }
         return auth
 

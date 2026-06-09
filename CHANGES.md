@@ -2,6 +2,8 @@
 
 ## 2026-06-08
 
+- Prevented blank Basic auth username/password values from emitting
+  Authorization headers, with no-network regression coverage.
 - Added `make check` as the shared repository verification alias.
 - Added no-network auth smoke tests confirming generated clients do not send an
   Authorization header by default and only build Basic auth from runtime
