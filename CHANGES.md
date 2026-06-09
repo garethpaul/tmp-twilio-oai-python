@@ -2,6 +2,8 @@
 
 ## 2026-06-09
 
+- Rejected unsupported REST methods with an explicit `ApiValueError` before
+  calling urllib3, including no-network regression coverage.
 - Preserved repeated query parameter values when write requests append generated
   query params into URLs.
 - Fixed write-method query parameter appending so URLs with existing query

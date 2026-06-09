@@ -1,4 +1,7 @@
+import pytest
+
 from openapi_client.configuration import Configuration
+from openapi_client.exceptions import ApiValueError
 from openapi_client.rest import RESTClientObject
 
 
@@ -93,3 +96,12 @@ def test_write_request_appends_repeated_query_params():
         client.pool_manager.calls[0]["url"]
         == "https://api.twilio.com/2010-04-01/Messages.json?Status=queued&Status=sent"
     )
+
+
+def test_request_rejects_unsupported_method_before_pool_request():
+    client = client_with_capturing_pool()
+
+    with pytest.raises(ApiValueError, match="Unsupported HTTP method: TRACE"):
+        client.request("TRACE", "https://api.twilio.com/2010-04-01/Messages.json")
+
+    assert client.pool_manager.calls == []

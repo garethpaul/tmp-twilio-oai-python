@@ -26,6 +26,7 @@ Priority:
   query parameters
 - Preserve repeated query parameter values during write request URL preparation
 - Preserve API exceptions when response bodies are missing or already decoded
+- Reject unsupported REST methods before invoking the urllib3 pool manager
 - Keep completed maintenance plans under `docs/plans`
 
 Next priorities:
@@ -59,6 +60,7 @@ configuration should remain explicit.
 - Live-account tests as the only verification path
 - Basic auth over non-local plain HTTP hosts
 - Error handling that masks generated client API exceptions
+- Runtime request validation that depends on Python assertions
 - Claims of support without a regeneration process
 
 This list is a roadmap guardrail, not a permanent rule.

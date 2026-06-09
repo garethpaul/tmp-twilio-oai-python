@@ -67,7 +67,8 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   plain HTTP hosts, and REST request tests ensure caller-provided header
   dictionaries are not mutated while defaults are prepared. REST request tests
   also ensure write methods append query parameters to existing query strings
-  with `&` and preserve repeated query parameter values.
+  with `&`, preserve repeated query parameter values, and reject unsupported
+  HTTP methods before invoking urllib3.
 - `make check` also requires completed canonical plans under `docs/plans`.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
@@ -107,6 +108,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   query-string append guard.
 - See `docs/plans/2026-06-09-repeated-write-query-params.md` for repeated write
   query parameter coverage.
+- See `docs/plans/2026-06-09-unsupported-rest-method.md` for unsupported REST
+  method validation.
 
 ## Contributing
 

@@ -134,8 +134,13 @@ class RESTClientObject(object):
                                  (connection, read) timeouts.
         """
         method = method.upper()
-        assert method in ['GET', 'HEAD', 'DELETE', 'POST', 'PUT',
-                          'PATCH', 'OPTIONS']
+        allowed_methods = {
+            'GET', 'HEAD', 'DELETE', 'POST', 'PUT', 'PATCH', 'OPTIONS'
+        }
+        if method not in allowed_methods:
+            raise ApiValueError(
+                "Unsupported HTTP method: {0}".format(method)
+            )
 
         if post_params and body:
             raise ApiValueError(

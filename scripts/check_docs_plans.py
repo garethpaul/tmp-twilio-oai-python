@@ -8,6 +8,7 @@ DOCS_PLANS = ROOT / "docs" / "plans"
 CANONICAL_PLAN = DOCS_PLANS / "2026-06-08-tmp-twilio-oai-python-baseline.md"
 QUERY_APPEND_PLAN = DOCS_PLANS / "2026-06-09-write-query-append.md"
 REPEATED_QUERY_PLAN = DOCS_PLANS / "2026-06-09-repeated-write-query-params.md"
+UNSUPPORTED_METHOD_PLAN = DOCS_PLANS / "2026-06-09-unsupported-rest-method.md"
 
 
 def main():
@@ -19,6 +20,8 @@ def main():
         failures.append("docs/plans/2026-06-09-write-query-append.md is missing")
     if not REPEATED_QUERY_PLAN.exists():
         failures.append("docs/plans/2026-06-09-repeated-write-query-params.md is missing")
+    if not UNSUPPORTED_METHOD_PLAN.exists():
+        failures.append("docs/plans/2026-06-09-unsupported-rest-method.md is missing")
 
     plans = sorted(DOCS_PLANS.glob("*.md")) if DOCS_PLANS.exists() else []
     if not plans:
@@ -44,6 +47,12 @@ def main():
         failures.append("openapi_client/rest.py must preserve repeated write query parameters")
     if "url = _append_query_params(url, query_params)" not in rest:
         failures.append("write requests must append query parameters without duplicating '?'")
+    if "assert method in" in rest:
+        failures.append("openapi_client/rest.py must not rely on optimized-away assert statements for method validation")
+    if "allowed_methods = {" not in rest or "if method not in allowed_methods:" not in rest:
+        failures.append("openapi_client/rest.py must explicitly validate supported HTTP methods")
+    if "Unsupported HTTP method" not in rest:
+        failures.append("openapi_client/rest.py must raise a clear unsupported-method error")
 
     if failures:
         print("Documentation plan checks failed:", file=sys.stderr)
