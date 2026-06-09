@@ -64,7 +64,8 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   exception body handling so client errors are not masked by response decoding,
   and query auth parameter handling for requests with no preexisting query
   list. Basic auth tests also ensure credentials are not attached to non-local
-  plain HTTP hosts.
+  plain HTTP hosts, and REST request tests ensure caller-provided header
+  dictionaries are not mutated while defaults are prepared.
 - `make check` also requires completed canonical plans under `docs/plans`.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
@@ -98,6 +99,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   preservation guard.
 - See `docs/plans/2026-06-09-query-auth-parameters.md` for the query auth
   parameter initialization guard.
+- See `docs/plans/2026-06-09-rest-header-copy.md` for the REST request header
+  mutation guard.
 
 ## Contributing
 

@@ -21,6 +21,7 @@ Priority:
 - Avoid emitting auth headers from missing, blank, or whitespace runtime credentials
 - Avoid sending Basic auth credentials to non-local plain HTTP hosts
 - Keep generated auth parameter mutation safe when query strings start empty
+- Avoid mutating caller-owned REST request headers
 - Preserve API exceptions when response bodies are missing or already decoded
 - Keep completed maintenance plans under `docs/plans`
 

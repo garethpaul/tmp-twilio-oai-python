@@ -127,7 +127,7 @@ class RESTClientObject(object):
             )
 
         post_params = post_params or {}
-        headers = headers or {}
+        headers = dict(headers or {})
 
         timeout = None
         if _request_timeout:

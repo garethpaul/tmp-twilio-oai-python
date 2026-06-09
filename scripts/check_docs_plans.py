@@ -29,6 +29,10 @@ def main():
     if "LOCAL_BASIC_AUTH_HOSTS" not in configuration:
         failures.append("openapi_client/configuration.py must allow explicit local Basic auth hosts")
 
+    rest = (ROOT / "openapi_client" / "rest.py").read_text(encoding="utf-8")
+    if "headers = dict(headers or {})" not in rest:
+        failures.append("openapi_client/rest.py must copy caller headers before mutation")
+
     if failures:
         print("Documentation plan checks failed:", file=sys.stderr)
         for failure in failures:

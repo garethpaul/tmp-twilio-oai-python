@@ -2,6 +2,9 @@
 
 ## 2026-06-09
 
+- Copied REST request headers before applying generated defaults so caller-owned
+  dictionaries are not mutated.
+- Added no-network regression coverage for REST header immutability.
 - Prevented Basic auth headers from being attached to non-local plain HTTP hosts
   while preserving HTTPS and local-development hosts.
 - Initialized missing query parameter lists before applying query-based auth
