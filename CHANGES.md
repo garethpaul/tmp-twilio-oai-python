@@ -1,5 +1,12 @@
 # Changes
 
+## 2026-06-09
+
+- Preserved `ApiException` instances when response bodies are missing or
+  already decoded.
+- Added no-network regression coverage for `None`, string, and bytes exception
+  bodies.
+
 ## 2026-06-08
 
 - Trimmed runtime Basic auth credentials and rejected whitespace-only username

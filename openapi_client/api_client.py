@@ -199,8 +199,9 @@ class ApiClient(object):
                 _preload_content=_preload_content,
                 _request_timeout=_request_timeout)
         except ApiException as e:
-            e.body = e.body.decode('utf-8')
-            raise e
+            if isinstance(e.body, bytes):
+                e.body = e.body.decode('utf-8', errors='replace')
+            raise
 
         content_type = response_data.getheader('content-type')
 

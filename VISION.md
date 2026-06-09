@@ -19,6 +19,7 @@ Priority:
 - Avoid hand-editing generated files without a regeneration note
 - Keep credentials as runtime configuration only
 - Avoid emitting auth headers from missing, blank, or whitespace runtime credentials
+- Preserve API exceptions when response bodies are missing or already decoded
 - Keep completed maintenance plans under `docs/plans`
 
 Next priorities:
@@ -50,6 +51,7 @@ configuration should remain explicit.
 - Checked-in credentials or account data
 - Manual generated-code edits without provenance
 - Live-account tests as the only verification path
+- Error handling that masks generated client API exceptions
 - Claims of support without a regeneration process
 
 This list is a roadmap guardrail, not a permanent rule.
