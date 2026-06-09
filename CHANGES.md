@@ -2,6 +2,10 @@
 
 ## 2026-06-09
 
+- Fixed write-method query parameter appending so URLs with existing query
+  strings use `&` instead of a second `?`.
+- Added no-network regression coverage for write requests with existing query
+  strings.
 - Copied REST request headers before applying generated defaults so caller-owned
   dictionaries are not mutated.
 - Added no-network regression coverage for REST header immutability.

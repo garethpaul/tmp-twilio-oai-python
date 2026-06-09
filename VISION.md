@@ -22,6 +22,8 @@ Priority:
 - Avoid sending Basic auth credentials to non-local plain HTTP hosts
 - Keep generated auth parameter mutation safe when query strings start empty
 - Avoid mutating caller-owned REST request headers
+- Keep write-method query strings valid when operation URLs already include
+  query parameters
 - Preserve API exceptions when response bodies are missing or already decoded
 - Keep completed maintenance plans under `docs/plans`
 

@@ -14,7 +14,7 @@ import json
 import logging
 import re
 import ssl
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlsplit, urlunsplit
 
 import urllib3
 
@@ -22,6 +22,22 @@ from openapi_client.exceptions import ApiException, UnauthorizedException, Forbi
 
 
 logger = logging.getLogger(__name__)
+
+
+def _append_query_params(url, query_params):
+    if not query_params:
+        return url
+
+    parsed = urlsplit(url)
+    encoded_params = urlencode(query_params)
+    query = parsed.query
+    if query:
+        query = query + '&' + encoded_params
+    else:
+        query = encoded_params
+    return urlunsplit(
+        (parsed.scheme, parsed.netloc, parsed.path, query, parsed.fragment)
+    )
 
 
 class RESTResponse(io.IOBase):
@@ -144,8 +160,7 @@ class RESTClientObject(object):
         try:
             # For `POST`, `PUT`, `PATCH`, `OPTIONS`, `DELETE`
             if method in ['POST', 'PUT', 'PATCH', 'OPTIONS', 'DELETE']:
-                if query_params:
-                    url += '?' + urlencode(query_params)
+                url = _append_query_params(url, query_params)
                 if re.search('json', headers['Content-Type'], re.IGNORECASE):
                     request_body = None
                     if body is not None:

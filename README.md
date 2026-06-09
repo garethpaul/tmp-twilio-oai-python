@@ -65,7 +65,9 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   and query auth parameter handling for requests with no preexisting query
   list. Basic auth tests also ensure credentials are not attached to non-local
   plain HTTP hosts, and REST request tests ensure caller-provided header
-  dictionaries are not mutated while defaults are prepared.
+  dictionaries are not mutated while defaults are prepared. REST request tests
+  also ensure write methods append query parameters to existing query strings
+  with `&`.
 - `make check` also requires completed canonical plans under `docs/plans`.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
@@ -101,6 +103,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   parameter initialization guard.
 - See `docs/plans/2026-06-09-rest-header-copy.md` for the REST request header
   mutation guard.
+- See `docs/plans/2026-06-09-write-query-append.md` for the write request
+  query-string append guard.
 
 ## Contributing
 

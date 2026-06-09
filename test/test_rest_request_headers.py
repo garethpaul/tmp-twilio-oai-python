@@ -61,3 +61,19 @@ def test_request_does_not_mutate_headers_for_multipart_uploads():
 
     assert headers == {"Content-Type": "multipart/form-data"}
     assert "Content-Type" not in client.pool_manager.calls[0]["headers"]
+
+
+def test_write_request_appends_query_params_to_existing_query_string():
+    client = client_with_capturing_pool()
+
+    client.request(
+        "POST",
+        "https://api.twilio.com/2010-04-01/Messages.json?Page=1",
+        headers={"Content-Type": "application/json"},
+        query_params=[("PageSize", "50")],
+    )
+
+    assert (
+        client.pool_manager.calls[0]["url"]
+        == "https://api.twilio.com/2010-04-01/Messages.json?Page=1&PageSize=50"
+    )
