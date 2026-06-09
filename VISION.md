@@ -19,6 +19,7 @@ Priority:
 - Avoid hand-editing generated files without a regeneration note
 - Keep credentials as runtime configuration only
 - Avoid emitting auth headers from missing, blank, or whitespace runtime credentials
+- Keep generated auth parameter mutation safe when query strings start empty
 - Preserve API exceptions when response bodies are missing or already decoded
 - Keep completed maintenance plans under `docs/plans`
 

@@ -181,6 +181,8 @@ class ApiClient(object):
             body = self.sanitize_for_serialization(body)
 
         # auth setting
+        if auth_settings and query_params is None:
+            query_params = []
         self.update_params_for_auth(header_params, query_params,
                                     auth_settings, resource_path, method, body)
 

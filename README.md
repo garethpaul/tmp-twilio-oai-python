@@ -61,7 +61,9 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   `setup.py check`.
 - The pytest suite includes no-network checks for default host configuration
   and runtime-only, trimmed, non-empty Basic auth headers. It also covers API
-  exception body handling so client errors are not masked by response decoding.
+  exception body handling so client errors are not masked by response decoding,
+  and query auth parameter handling for requests with no preexisting query
+  list.
 - `make check` also requires completed canonical plans under `docs/plans`.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
@@ -91,6 +93,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   guard.
 - See `docs/plans/2026-06-09-api-exception-body.md` for the API exception body
   preservation guard.
+- See `docs/plans/2026-06-09-query-auth-parameters.md` for the query auth
+  parameter initialization guard.
 
 ## Contributing
 

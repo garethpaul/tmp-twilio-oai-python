@@ -2,6 +2,10 @@
 
 ## 2026-06-09
 
+- Initialized missing query parameter lists before applying query-based auth
+  settings.
+- Added no-network regression coverage for query auth on requests that start
+  without query parameters.
 - Preserved `ApiException` instances when response bodies are missing or
   already decoded.
 - Added no-network regression coverage for `None`, string, and bytes exception
