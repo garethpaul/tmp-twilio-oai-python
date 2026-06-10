@@ -28,6 +28,7 @@ Priority:
 - Preserve API exceptions when response bodies are missing or already decoded
 - Reject unsupported REST methods before invoking the urllib3 pool manager
 - Keep completed maintenance plans under `docs/plans`
+- Verify the built wheel, not only the source checkout, before publishing
 
 Next priorities:
 

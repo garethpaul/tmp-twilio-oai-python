@@ -2,6 +2,12 @@
 
 ## 2026-06-10
 
+- Added an isolated install/import smoke test for the built wheel and made the
+  Makefile verification paths independent of the caller's working directory.
+- Scoped vulnerability auditing to the declared runtime dependency graph and
+  added dependency consistency checks with ambient `PYTHONPATH` removed.
+- Fixed CI to Ubuntu 24.04, added concurrency cancellation, and annotated
+  immutable action pins with their verified release versions.
 - Raised the supported Python floor to 3.10 and added a maintained-runtime CI
   matrix through Python 3.14.
 - Added pinned runtime and verification requirements, PEP 517 source/wheel

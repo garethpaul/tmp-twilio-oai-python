@@ -59,9 +59,11 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 ## Testing and Verification
 
 - `make check` runs Python syntax checks, the generated pytest suite, package
-  source/wheel builds, and a security audit of the fully resolved isolated
-  environment, including transitive dependencies. The suite has 342 offline
-  tests.
+  source/wheel builds, an isolated install/import smoke test of the built
+  wheel, dependency consistency checks, and a security audit of the declared
+  runtime dependency graph, including transitive dependencies. Ambient
+  `PYTHONPATH` entries are excluded from dependency verification. The suite has
+  342 offline tests.
 - The pytest suite includes no-network checks for default host configuration
   and runtime-only, trimmed, non-empty Basic auth headers. It also covers API
   exception body handling so client errors are not masked by response decoding,
@@ -74,7 +76,8 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   HTTP methods before invoking urllib3.
 - `make check` also requires completed canonical plans under `docs/plans`.
 - GitHub Actions runs the same gate on Python 3.10, 3.12, and 3.14 with
-  read-only permissions, bounded jobs, and immutable action pins.
+  read-only permissions, a fixed Ubuntu 24.04 image, bounded jobs, concurrency
+  cancellation, and immutable action pins.
 - The verification requirements upgrade pip to 26.1.2 before auditing because
   hosted Python images may include the vulnerable 26.1.1 release.
 - Obsolete Travis and GitLab matrices for end-of-life Python releases have been
