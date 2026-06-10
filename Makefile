@@ -10,8 +10,10 @@ test:
 	$(PYTHON) -m pytest -q
 
 build: lint
-	$(PYTHON) setup.py check
+	rm -rf build dist *.egg-info
+	$(PYTHON) -m build --no-isolation
 
 verify: lint test build
 
 check: verify
+	$(PYTHON) -m pip_audit -r requirements.txt -r requirements-dev.txt

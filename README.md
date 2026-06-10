@@ -37,7 +37,7 @@ Additional scan context:
 ### Prerequisites
 
 - Git
-- Python 3.6 or newer
+- Python 3.10 or newer; CI verifies Python 3.10, 3.12, and 3.14
 
 ### Setup
 
@@ -45,6 +45,7 @@ Additional scan context:
 git clone https://github.com/garethpaul/tmp-twilio-oai-python.git
 cd tmp-twilio-oai-python
 python -m pip install -r requirements.txt
+python -m pip install -r requirements-dev.txt
 ```
 
 The setup commands above are derived from repository files. Legacy mobile, Python, or JavaScript samples may require older SDKs or package versions than a modern workstation uses by default.
@@ -57,8 +58,9 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 
 ## Testing and Verification
 
-- `make check` runs Python syntax checks, the generated pytest suite, and
-  `setup.py check`.
+- `make check` runs Python syntax checks, the generated pytest suite, package
+  source/wheel builds, and a declared-dependency security audit. The suite has
+  342 offline tests.
 - The pytest suite includes no-network checks for default host configuration
   and runtime-only, trimmed, non-empty Basic auth headers. It also covers API
   exception body handling so client errors are not masked by response decoding,
@@ -70,6 +72,10 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   with `&`, preserve repeated query parameter values, and reject unsupported
   HTTP methods before invoking urllib3.
 - `make check` also requires completed canonical plans under `docs/plans`.
+- GitHub Actions runs the same gate on Python 3.10, 3.12, and 3.14 with
+  read-only permissions, bounded jobs, and immutable action pins.
+- Obsolete Travis and GitLab matrices for end-of-life Python releases have been
+  removed so the checked-in CI support statement is unambiguous.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
 

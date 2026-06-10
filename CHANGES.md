@@ -1,5 +1,15 @@
 # Changes
 
+## 2026-06-10
+
+- Raised the supported Python floor to 3.10 and added a maintained-runtime CI
+  matrix through Python 3.14.
+- Added pinned runtime and verification requirements, PEP 517 source/wheel
+  builds, and dependency auditing to `make check`.
+- Added least-privilege GitHub Actions verification with immutable action pins.
+- Removed stale Travis and GitLab matrices that only targeted unsupported
+  Python 3.6 through 3.9 releases.
+
 ## 2026-06-09
 
 - Rejected unsupported REST methods with an explicit `ApiValueError` before

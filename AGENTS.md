@@ -16,7 +16,8 @@
 
 ## Development commands
 
-- Install dependencies: `python3 -m pip install -r requirements.txt`; `python3 -m pip install -e .`
+- Supported runtime: Python 3.10 or newer
+- Install dependencies: `python3 -m pip install -r requirements.txt -r requirements-dev.txt`; `python3 -m pip install -e .`
 - Full baseline: `make check`
 - Combined verification: `make verify`
 - Lint/static checks: `make lint`
