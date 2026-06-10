@@ -75,6 +75,8 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 - `make check` also requires completed canonical plans under `docs/plans`.
 - GitHub Actions runs the same gate on Python 3.10, 3.12, and 3.14 with
   read-only permissions, bounded jobs, and immutable action pins.
+- The verification requirements upgrade pip to 26.1.2 before auditing because
+  hosted Python images may include the vulnerable 26.1.1 release.
 - Obsolete Travis and GitLab matrices for end-of-life Python releases have been
   removed so the checked-in CI support statement is unambiguous.
 

@@ -98,6 +98,10 @@ def main():
         if dependency not in runtime_requirements:
             failures.append(f"runtime requirement is missing: {dependency}")
 
+    development_requirements = (ROOT / "requirements-dev.txt").read_text(encoding="utf-8")
+    if "pip==26.1.2" not in development_requirements:
+        failures.append("requirements-dev.txt must pin the audited pip version")
+
     makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
     for contract in ("$(PYTHON) -m build", "pip_audit --local"):
         if contract not in makefile:

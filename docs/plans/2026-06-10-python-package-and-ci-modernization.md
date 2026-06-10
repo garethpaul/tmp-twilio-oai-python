@@ -11,6 +11,8 @@ verified on maintained Python releases without broad generated-code churn.
 
 - Declare a modern Python support floor and compatible direct dependency bounds.
 - Add PEP 517 build metadata and a pinned verification dependency set.
+- Upgrade hosted environments to pip 26.1.2 before auditing to remediate
+  `PYSEC-2026-196` in the runner-provided pip 26.1.1.
 - Build both source and wheel distributions during the shared quality gate.
 - Audit the fully resolved isolated environment, including transitive
   dependencies, and run all 342 offline regression tests.

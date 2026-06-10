@@ -6,6 +6,8 @@
   matrix through Python 3.14.
 - Added pinned runtime and verification requirements, PEP 517 source/wheel
   builds, and dependency auditing to `make check`.
+- Pinned pip 26.1.2 in the verification environment to remediate
+  `PYSEC-2026-196` in hosted runner images.
 - Added least-privilege GitHub Actions verification with immutable action pins.
 - Removed stale Travis and GitLab matrices that only targeted unsupported
   Python 3.6 through 3.9 releases.
