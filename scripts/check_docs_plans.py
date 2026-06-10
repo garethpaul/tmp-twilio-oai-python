@@ -9,6 +9,7 @@ CANONICAL_PLAN = DOCS_PLANS / "2026-06-08-tmp-twilio-oai-python-baseline.md"
 QUERY_APPEND_PLAN = DOCS_PLANS / "2026-06-09-write-query-append.md"
 REPEATED_QUERY_PLAN = DOCS_PLANS / "2026-06-09-repeated-write-query-params.md"
 UNSUPPORTED_METHOD_PLAN = DOCS_PLANS / "2026-06-09-unsupported-rest-method.md"
+MODERNIZATION_PLAN = DOCS_PLANS / "2026-06-10-python-package-and-ci-modernization.md"
 
 
 def main():
@@ -22,6 +23,8 @@ def main():
         failures.append("docs/plans/2026-06-09-repeated-write-query-params.md is missing")
     if not UNSUPPORTED_METHOD_PLAN.exists():
         failures.append("docs/plans/2026-06-09-unsupported-rest-method.md is missing")
+    if not MODERNIZATION_PLAN.exists():
+        failures.append("docs/plans/2026-06-10-python-package-and-ci-modernization.md is missing")
 
     plans = sorted(DOCS_PLANS.glob("*.md")) if DOCS_PLANS.exists() else []
     if not plans:
@@ -53,6 +56,67 @@ def main():
         failures.append("openapi_client/rest.py must explicitly validate supported HTTP methods")
     if "Unsupported HTTP method" not in rest:
         failures.append("openapi_client/rest.py must raise a clear unsupported-method error")
+
+    required_files = [
+        "pyproject.toml",
+        "requirements-dev.txt",
+        ".github/workflows/check.yml",
+    ]
+    for required_file in required_files:
+        if not (ROOT / required_file).exists():
+            failures.append(f"{required_file} is missing")
+
+    for obsolete_ci in (".travis.yml", ".gitlab-ci.yml"):
+        if (ROOT / obsolete_ci).exists():
+            failures.append(f"{obsolete_ci} must not advertise unsupported Python runtimes")
+
+    setup = (ROOT / "setup.py").read_text(encoding="utf-8")
+    if 'python_requires=">=3.10"' not in setup:
+        failures.append("setup.py must require maintained Python 3.10 or newer")
+    for dependency in (
+        '"urllib3 >= 2.6.3, < 3"',
+        '"python-dateutil >= 2.9.0.post0, < 3"',
+        '"nulltype >= 2.3.1, < 3"',
+    ):
+        if dependency not in setup:
+            failures.append(f"setup.py dependency contract is missing: {dependency}")
+
+    pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    for contract in (
+        'requires = ["setuptools==82.0.1", "wheel==0.47.0"]',
+        'build-backend = "setuptools.build_meta"',
+    ):
+        if contract not in pyproject:
+            failures.append(f"pyproject.toml build contract is missing: {contract}")
+
+    runtime_requirements = (ROOT / "requirements.txt").read_text(encoding="utf-8")
+    for dependency in (
+        "nulltype==2.3.1",
+        "python-dateutil==2.9.0.post0",
+        "urllib3==2.7.0",
+    ):
+        if dependency not in runtime_requirements:
+            failures.append(f"runtime requirement is missing: {dependency}")
+
+    makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
+    for contract in ("$(PYTHON) -m build", "pip_audit --local"):
+        if contract not in makefile:
+            failures.append(f"Makefile verification contract is missing: {contract}")
+
+    workflow = (ROOT / ".github" / "workflows" / "check.yml").read_text(encoding="utf-8")
+    workflow_contracts = [
+        "permissions:\n  contents: read",
+        "workflow_dispatch:",
+        "timeout-minutes: 15",
+        "python-version: ['3.10', '3.12', '3.14']",
+        "fail-fast: false",
+        "actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10",
+        "actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405",
+        "run: make check",
+    ]
+    for contract in workflow_contracts:
+        if contract not in workflow:
+            failures.append(f"GitHub Actions workflow contract is missing: {contract}")
 
     if failures:
         print("Documentation plan checks failed:", file=sys.stderr)
