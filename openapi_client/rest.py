@@ -222,7 +222,10 @@ class RESTClientObject(object):
                                               headers=headers)
         except urllib3.exceptions.SSLError as e:
             msg = "{0}\n{1}".format(type(e).__name__, str(e))
-            raise ApiException(status=0, reason=msg)
+            raise ApiException(status=0, reason=msg) from e
+        except urllib3.exceptions.HTTPError as e:
+            msg = "{0}\n{1}".format(type(e).__name__, str(e))
+            raise ApiException(status=0, reason=msg) from e
 
         if _preload_content:
             r = RESTResponse(r)

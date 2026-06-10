@@ -63,7 +63,7 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   wheel, dependency consistency checks, and a security audit of the declared
   runtime dependency graph, including transitive dependencies. Ambient
   `PYTHONPATH` entries are excluded from dependency verification. The suite has
-  342 offline tests.
+  343 offline tests.
 - The pytest suite includes no-network checks for default host configuration
   and runtime-only, trimmed, non-empty Basic auth headers. It also covers API
   exception body handling so client errors are not masked by response decoding,
@@ -74,6 +74,8 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   also ensure write methods append query parameters to existing query strings
   with `&`, preserve repeated query parameter values, and reject unsupported
   HTTP methods before invoking urllib3.
+- REST transport tests verify timeouts and other urllib3 failures surface
+  through the generated client's `ApiException` contract with their cause kept.
 - `make check` also requires completed canonical plans under `docs/plans`.
 - GitHub Actions runs the same gate on Python 3.10, 3.12, and 3.14 with
   read-only permissions, a fixed Ubuntu 24.04 image, bounded jobs, concurrency
@@ -122,6 +124,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   query parameter coverage.
 - See `docs/plans/2026-06-09-unsupported-rest-method.md` for unsupported REST
   method validation.
+- See `docs/plans/2026-06-10-rest-transport-errors.md` for normalized urllib3
+  transport failures and exception chaining.
 
 ## Contributing
 

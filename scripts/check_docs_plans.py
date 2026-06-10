@@ -11,6 +11,7 @@ REPEATED_QUERY_PLAN = DOCS_PLANS / "2026-06-09-repeated-write-query-params.md"
 UNSUPPORTED_METHOD_PLAN = DOCS_PLANS / "2026-06-09-unsupported-rest-method.md"
 MODERNIZATION_PLAN = DOCS_PLANS / "2026-06-10-python-package-and-ci-modernization.md"
 ARTIFACT_PLAN = DOCS_PLANS / "2026-06-10-wheel-artifact-verification.md"
+TRANSPORT_PLAN = DOCS_PLANS / "2026-06-10-rest-transport-errors.md"
 ARTIFACT_CHECKER = ROOT / "scripts" / "check_package_artifact.py"
 
 
@@ -29,6 +30,8 @@ def main():
         failures.append("docs/plans/2026-06-10-python-package-and-ci-modernization.md is missing")
     if not ARTIFACT_PLAN.exists():
         failures.append("docs/plans/2026-06-10-wheel-artifact-verification.md is missing")
+    if not TRANSPORT_PLAN.exists():
+        failures.append("docs/plans/2026-06-10-rest-transport-errors.md is missing")
 
     plans = sorted(DOCS_PLANS.glob("*.md")) if DOCS_PLANS.exists() else []
     if not plans:
@@ -60,6 +63,10 @@ def main():
         failures.append("openapi_client/rest.py must explicitly validate supported HTTP methods")
     if "Unsupported HTTP method" not in rest:
         failures.append("openapi_client/rest.py must raise a clear unsupported-method error")
+    if "except urllib3.exceptions.HTTPError as e:" not in rest:
+        failures.append("openapi_client/rest.py must normalize urllib3 transport errors")
+    if rest.count("raise ApiException(status=0, reason=msg) from e") < 2:
+        failures.append("REST transport wrappers must preserve their urllib3 exception cause")
 
     required_files = [
         "pyproject.toml",

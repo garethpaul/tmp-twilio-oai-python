@@ -2,6 +2,8 @@
 
 ## 2026-06-10
 
+- Normalized urllib3 transport failures into `ApiException(status=0)` while
+  preserving the original exception cause, with a no-network timeout test.
 - Added an isolated install/import smoke test for the built wheel and made the
   Makefile verification paths independent of the caller's working directory.
 - Scoped vulnerability auditing to the declared runtime dependency graph and
