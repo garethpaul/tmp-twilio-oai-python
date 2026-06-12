@@ -2,6 +2,8 @@
 
 ## 2026-06-12
 
+- Made REST Content-Type resolution case-insensitive and parameter-aware,
+  rejected conflicting case variants, and preserved multipart boundary setup.
 - Replaced raw REST response-body debug logging with status and byte-count
   metadata, with no-network privacy regressions for success and error payloads.
 - Rejected malformed REST request timeout values before invoking urllib3 so an
