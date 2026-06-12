@@ -39,6 +39,8 @@ Helpful reports include:
   with ambient `PYTHONPATH` entries removed.
 - Transport failures are normalized without logging credentials, while the
   original urllib3 cause remains available to trusted callers for diagnosis.
+- Malformed timeout values fail before transport dispatch so invalid bounded
+  request configuration cannot silently become an unbounded/default request.
 
 ## Service and API Notes
 

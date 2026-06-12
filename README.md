@@ -76,6 +76,9 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   HTTP methods before invoking urllib3.
 - REST transport tests verify timeouts and other urllib3 failures surface
   through the generated client's `ApiException` contract with their cause kept.
+- REST request timeout validation accepts positive numeric totals or two-item
+  connect/read tuples containing positive numbers or `None`; malformed,
+  non-positive, boolean, and non-finite values fail before network work.
 - `make check` also requires completed canonical plans under `docs/plans`.
 - GitHub Actions runs the same gate on Python 3.10, 3.12, and 3.14 with
   read-only permissions, a fixed Ubuntu 24.04 image, bounded jobs, concurrency
@@ -126,6 +129,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   method validation.
 - See `docs/plans/2026-06-10-rest-transport-errors.md` for normalized urllib3
   transport failures and exception chaining.
+- See `docs/plans/2026-06-12-rest-timeout-validation.md` for request timeout
+  validation before urllib3 dispatch.
 
 ## Contributing
 

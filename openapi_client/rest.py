@@ -12,6 +12,7 @@
 import io
 import json
 import logging
+import math
 import re
 import ssl
 from urllib.parse import urlencode, urlsplit, urlunsplit
@@ -22,6 +23,42 @@ from openapi_client.exceptions import ApiException, UnauthorizedException, Forbi
 
 
 logger = logging.getLogger(__name__)
+
+
+def _prepare_request_timeout(value):
+    if value is None:
+        return None
+
+    def validate_component(component):
+        if component is None:
+            return
+        if (isinstance(component, bool) or
+                not isinstance(component, (int, float)) or
+                component <= 0 or
+                (isinstance(component, float) and
+                 not math.isfinite(component))):
+            raise ApiValueError(
+                "Request timeout values must be positive finite numbers or None."
+            )
+
+    if isinstance(value, tuple):
+        if len(value) != 2:
+            raise ApiValueError(
+                "Request timeout tuples must contain connect and read values."
+            )
+        connect, read = value
+        validate_component(connect)
+        validate_component(read)
+        try:
+            return urllib3.Timeout(connect=connect, read=read)
+        except (OverflowError, ValueError) as error:
+            raise ApiValueError("Request timeout value is invalid.") from error
+
+    validate_component(value)
+    try:
+        return urllib3.Timeout(total=value)
+    except (OverflowError, ValueError) as error:
+        raise ApiValueError("Request timeout value is invalid.") from error
 
 
 def _append_query_params(url, query_params):
@@ -150,14 +187,7 @@ class RESTClientObject(object):
         post_params = post_params or {}
         headers = dict(headers or {})
 
-        timeout = None
-        if _request_timeout:
-            if isinstance(_request_timeout, (int, float)):  # noqa: E501,F821
-                timeout = urllib3.Timeout(total=_request_timeout)
-            elif (isinstance(_request_timeout, tuple) and
-                  len(_request_timeout) == 2):
-                timeout = urllib3.Timeout(
-                    connect=_request_timeout[0], read=_request_timeout[1])
+        timeout = _prepare_request_timeout(_request_timeout)
 
         if 'Content-Type' not in headers:
             headers['Content-Type'] = 'application/json'

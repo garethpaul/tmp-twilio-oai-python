@@ -12,6 +12,7 @@ UNSUPPORTED_METHOD_PLAN = DOCS_PLANS / "2026-06-09-unsupported-rest-method.md"
 MODERNIZATION_PLAN = DOCS_PLANS / "2026-06-10-python-package-and-ci-modernization.md"
 ARTIFACT_PLAN = DOCS_PLANS / "2026-06-10-wheel-artifact-verification.md"
 TRANSPORT_PLAN = DOCS_PLANS / "2026-06-10-rest-transport-errors.md"
+TIMEOUT_PLAN = DOCS_PLANS / "2026-06-12-rest-timeout-validation.md"
 ARTIFACT_CHECKER = ROOT / "scripts" / "check_package_artifact.py"
 
 
@@ -32,6 +33,8 @@ def main():
         failures.append("docs/plans/2026-06-10-wheel-artifact-verification.md is missing")
     if not TRANSPORT_PLAN.exists():
         failures.append("docs/plans/2026-06-10-rest-transport-errors.md is missing")
+    if not TIMEOUT_PLAN.exists():
+        failures.append("docs/plans/2026-06-12-rest-timeout-validation.md is missing")
 
     plans = sorted(DOCS_PLANS.glob("*.md")) if DOCS_PLANS.exists() else []
     if not plans:
@@ -67,6 +70,27 @@ def main():
         failures.append("openapi_client/rest.py must normalize urllib3 transport errors")
     if rest.count("raise ApiException(status=0, reason=msg) from e") < 2:
         failures.append("REST transport wrappers must preserve their urllib3 exception cause")
+    if "def _prepare_request_timeout(value):" not in rest:
+        failures.append("openapi_client/rest.py must validate request timeouts in a helper")
+    if "not math.isfinite(component)" not in rest:
+        failures.append("REST timeout validation must reject non-finite values")
+    if "timeout = _prepare_request_timeout(_request_timeout)" not in rest:
+        failures.append("REST requests must validate timeouts before transport dispatch")
+
+    timeout_tests = ROOT / "test" / "test_rest_request_timeout.py"
+    if not timeout_tests.exists():
+        failures.append("test/test_rest_request_timeout.py is missing")
+    else:
+        timeout_test_text = timeout_tests.read_text(encoding="utf-8")
+        for contract in [
+            "test_request_preserves_default_timeout_when_omitted",
+            "test_request_accepts_positive_total_timeout",
+            "test_request_accepts_connect_read_timeout_tuple",
+            "test_request_rejects_invalid_timeout_before_pool_request",
+            "assert client.pool_manager.calls == []",
+        ]:
+            if contract not in timeout_test_text:
+                failures.append(f"REST timeout regression contract is missing: {contract}")
 
     required_files = [
         "pyproject.toml",

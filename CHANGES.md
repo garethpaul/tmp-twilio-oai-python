@@ -1,5 +1,12 @@
 # Changes
 
+## 2026-06-12
+
+- Rejected malformed REST request timeout values before invoking urllib3 so an
+  intended bounded request cannot silently fall back to transport defaults.
+- Added no-network coverage for default, total, connect/read, non-positive,
+  non-finite, boolean, and malformed timeout forms.
+
 ## 2026-06-10
 
 - Normalized urllib3 transport failures into `ApiException(status=0)` while
