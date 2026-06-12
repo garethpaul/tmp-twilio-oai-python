@@ -28,6 +28,7 @@ Priority:
 - Preserve API exceptions when response bodies are missing or already decoded
 - Normalize urllib3 transport failures through the public API exception type
 - Reject malformed request timeout values before invoking urllib3
+- Keep Twilio response payloads out of generated-client debug logs
 - Reject unsupported REST methods before invoking the urllib3 pool manager
 - Keep completed maintenance plans under `docs/plans`
 - Verify the built wheel, not only the source checkout, before publishing

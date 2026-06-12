@@ -13,6 +13,7 @@ MODERNIZATION_PLAN = DOCS_PLANS / "2026-06-10-python-package-and-ci-modernizatio
 ARTIFACT_PLAN = DOCS_PLANS / "2026-06-10-wheel-artifact-verification.md"
 TRANSPORT_PLAN = DOCS_PLANS / "2026-06-10-rest-transport-errors.md"
 TIMEOUT_PLAN = DOCS_PLANS / "2026-06-12-rest-timeout-validation.md"
+RESPONSE_LOGGING_PLAN = DOCS_PLANS / "2026-06-12-rest-response-logging.md"
 ARTIFACT_CHECKER = ROOT / "scripts" / "check_package_artifact.py"
 
 
@@ -35,6 +36,8 @@ def main():
         failures.append("docs/plans/2026-06-10-rest-transport-errors.md is missing")
     if not TIMEOUT_PLAN.exists():
         failures.append("docs/plans/2026-06-12-rest-timeout-validation.md is missing")
+    if not RESPONSE_LOGGING_PLAN.exists():
+        failures.append("docs/plans/2026-06-12-rest-response-logging.md is missing")
 
     plans = sorted(DOCS_PLANS.glob("*.md")) if DOCS_PLANS.exists() else []
     if not plans:
@@ -76,6 +79,10 @@ def main():
         failures.append("REST timeout validation must reject non-finite values")
     if "timeout = _prepare_request_timeout(_request_timeout)" not in rest:
         failures.append("REST requests must validate timeouts before transport dispatch")
+    if 'logger.debug("response body: %s", r.data)' in rest:
+        failures.append("REST debug logging must not emit response bodies")
+    if '"response received: status=%s bytes=%s"' not in rest:
+        failures.append("REST debug logging must retain response status and size metadata")
 
     timeout_tests = ROOT / "test" / "test_rest_request_timeout.py"
     if not timeout_tests.exists():
@@ -91,6 +98,23 @@ def main():
         ]:
             if contract not in timeout_test_text:
                 failures.append(f"REST timeout regression contract is missing: {contract}")
+
+    response_logging_tests = ROOT / "test" / "test_rest_response_logging.py"
+    if not response_logging_tests.exists():
+        failures.append("test/test_rest_response_logging.py is missing")
+    else:
+        response_logging_test_text = response_logging_tests.read_text(encoding="utf-8")
+        for contract in [
+            "test_success_response_logs_metadata_without_body",
+            "test_error_response_logs_metadata_without_body",
+            'caplog.set_level(logging.DEBUG, logger="openapi_client.rest")',
+            "assert response.data == body",
+            "assert captured.value.body == body",
+        ]:
+            if contract not in response_logging_test_text:
+                failures.append(f"REST response logging regression contract is missing: {contract}")
+        if response_logging_test_text.count('assert "super-secret" not in caplog.text') != 2:
+            failures.append("REST response logging tests must protect both response paths from payload disclosure")
 
     required_files = [
         "pyproject.toml",

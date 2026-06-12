@@ -63,7 +63,7 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   wheel, dependency consistency checks, and a security audit of the declared
   runtime dependency graph, including transitive dependencies. Ambient
   `PYTHONPATH` entries are excluded from dependency verification. The suite has
-  343 offline tests.
+  367 offline tests.
 - The pytest suite includes no-network checks for default host configuration
   and runtime-only, trimmed, non-empty Basic auth headers. It also covers API
   exception body handling so client errors are not masked by response decoding,
@@ -79,6 +79,8 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 - REST request timeout validation accepts positive numeric totals or two-item
   connect/read tuples containing positive numbers or `None`; malformed,
   non-positive, boolean, and non-finite values fail before network work.
+- REST debug logging records only response status and byte count; response and
+  error bodies remain available to callers without being copied into logs.
 - `make check` also requires completed canonical plans under `docs/plans`.
 - GitHub Actions runs the same gate on Python 3.10, 3.12, and 3.14 with
   read-only permissions, a fixed Ubuntu 24.04 image, bounded jobs, concurrency
@@ -131,6 +133,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   transport failures and exception chaining.
 - See `docs/plans/2026-06-12-rest-timeout-validation.md` for request timeout
   validation before urllib3 dispatch.
+- See `docs/plans/2026-06-12-rest-response-logging.md` for metadata-only REST
+  response diagnostics and payload privacy coverage.
 
 ## Contributing
 

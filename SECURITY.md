@@ -41,6 +41,8 @@ Helpful reports include:
   original urllib3 cause remains available to trusted callers for diagnosis.
 - Malformed timeout values fail before transport dispatch so invalid bounded
   request configuration cannot silently become an unbounded/default request.
+- REST debug diagnostics record response status and byte count without copying
+  Twilio success or error payloads into logs.
 
 ## Service and API Notes
 
