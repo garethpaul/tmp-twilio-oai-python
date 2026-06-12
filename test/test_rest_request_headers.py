@@ -27,6 +27,9 @@ class CapturingPoolManager:
                 "method": method,
                 "url": url,
                 "headers": dict(kwargs.get("headers") or {}),
+                "body": kwargs.get("body"),
+                "fields": kwargs.get("fields"),
+                "encode_multipart": kwargs.get("encode_multipart"),
             }
         )
         return DummyHTTPResponse()
@@ -64,6 +67,77 @@ def test_request_does_not_mutate_headers_for_multipart_uploads():
 
     assert headers == {"Content-Type": "multipart/form-data"}
     assert "Content-Type" not in client.pool_manager.calls[0]["headers"]
+
+
+def test_parameterized_json_content_type_uses_json_body_without_duplicate_header():
+    client = client_with_capturing_pool()
+    headers = {"content-type": "Application/Problem+JSON; charset=utf-8"}
+
+    client.request(
+        "POST",
+        "https://api.twilio.com",
+        headers=headers,
+        body={"message": "hello"},
+    )
+
+    call = client.pool_manager.calls[0]
+    assert headers == {"content-type": "Application/Problem+JSON; charset=utf-8"}
+    assert call["headers"] == headers
+    assert call["body"] == '{"message": "hello"}'
+
+
+def test_lowercase_parameterized_form_content_type_uses_form_fields():
+    client = client_with_capturing_pool()
+    headers = {
+        "content-type": "Application/X-WWW-Form-Urlencoded; charset=utf-8"
+    }
+
+    client.request(
+        "POST",
+        "https://api.twilio.com",
+        headers=headers,
+        post_params=[("Body", "hello")],
+    )
+
+    call = client.pool_manager.calls[0]
+    assert call["headers"] == headers
+    assert call["fields"] == [("Body", "hello")]
+    assert call["encode_multipart"] is False
+
+
+def test_lowercase_parameterized_multipart_header_is_removed_from_copy():
+    client = client_with_capturing_pool()
+    headers = {"content-type": "Multipart/Form-Data; boundary=caller-value"}
+
+    client.request(
+        "POST",
+        "https://api.twilio.com",
+        headers=headers,
+        post_params=[("media", "body")],
+    )
+
+    call = client.pool_manager.calls[0]
+    assert headers == {"content-type": "Multipart/Form-Data; boundary=caller-value"}
+    assert call["headers"] == {}
+    assert call["fields"] == [("media", "body")]
+    assert call["encode_multipart"] is True
+
+
+def test_duplicate_content_type_case_variants_fail_before_transport():
+    client = client_with_capturing_pool()
+
+    with pytest.raises(ApiValueError, match="multiple Content-Type"):
+        client.request(
+            "POST",
+            "https://api.twilio.com",
+            headers={
+                "Content-Type": "application/json",
+                "content-type": "application/x-www-form-urlencoded",
+            },
+            body={"message": "hello"},
+        )
+
+    assert client.pool_manager.calls == []
 
 
 def test_write_request_appends_query_params_to_existing_query_string():

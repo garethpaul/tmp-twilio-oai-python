@@ -63,14 +63,16 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   wheel, dependency consistency checks, and a security audit of the declared
   runtime dependency graph, including transitive dependencies. Ambient
   `PYTHONPATH` entries are excluded from dependency verification. The suite has
-  367 offline tests.
+  371 offline tests.
 - The pytest suite includes no-network checks for default host configuration
   and runtime-only, trimmed, non-empty Basic auth headers. It also covers API
   exception body handling so client errors are not masked by response decoding,
   and query auth parameter handling for requests with no preexisting query
   list. Basic auth tests also ensure credentials are not attached to non-local
   plain HTTP hosts, and REST request tests ensure caller-provided header
-  dictionaries are not mutated while defaults are prepared. REST request tests
+  dictionaries are not mutated while defaults are prepared. Content-Type
+  routing is case-insensitive, accepts media-type parameters, and rejects
+  ambiguous duplicate spellings before dispatch. REST request tests
   also ensure write methods append query parameters to existing query strings
   with `&`, preserve repeated query parameter values, and reject unsupported
   HTTP methods before invoking urllib3.
@@ -135,6 +137,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   validation before urllib3 dispatch.
 - See `docs/plans/2026-06-12-rest-response-logging.md` for metadata-only REST
   response diagnostics and payload privacy coverage.
+- See `docs/plans/2026-06-12-content-type-routing.md` for case-insensitive,
+  parameter-aware request encoder selection.
 
 ## Contributing
 

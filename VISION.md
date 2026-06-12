@@ -22,6 +22,7 @@ Priority:
 - Avoid sending Basic auth credentials to non-local plain HTTP hosts
 - Keep generated auth parameter mutation safe when query strings start empty
 - Avoid mutating caller-owned REST request headers
+- Route request bodies from one unambiguous, case-insensitive Content-Type
 - Keep write-method query strings valid when operation URLs already include
   query parameters
 - Preserve repeated query parameter values during write request URL preparation

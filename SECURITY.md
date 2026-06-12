@@ -43,6 +43,8 @@ Helpful reports include:
   request configuration cannot silently become an unbounded/default request.
 - REST debug diagnostics record response status and byte count without copying
   Twilio success or error payloads into logs.
+- REST request routing rejects conflicting Content-Type case variants and uses
+  the normalized base media type before selecting an encoder.
 
 ## Service and API Notes
 

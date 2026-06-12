@@ -14,7 +14,9 @@ ARTIFACT_PLAN = DOCS_PLANS / "2026-06-10-wheel-artifact-verification.md"
 TRANSPORT_PLAN = DOCS_PLANS / "2026-06-10-rest-transport-errors.md"
 TIMEOUT_PLAN = DOCS_PLANS / "2026-06-12-rest-timeout-validation.md"
 RESPONSE_LOGGING_PLAN = DOCS_PLANS / "2026-06-12-rest-response-logging.md"
+CONTENT_TYPE_PLAN = DOCS_PLANS / "2026-06-12-content-type-routing.md"
 ARTIFACT_CHECKER = ROOT / "scripts" / "check_package_artifact.py"
+REQUEST_HEADERS_TEST = ROOT / "test" / "test_rest_request_headers.py"
 
 
 def main():
@@ -38,6 +40,10 @@ def main():
         failures.append("docs/plans/2026-06-12-rest-timeout-validation.md is missing")
     if not RESPONSE_LOGGING_PLAN.exists():
         failures.append("docs/plans/2026-06-12-rest-response-logging.md is missing")
+    if not CONTENT_TYPE_PLAN.exists():
+        failures.append("docs/plans/2026-06-12-content-type-routing.md is missing")
+    if not REQUEST_HEADERS_TEST.exists():
+        failures.append("test/test_rest_request_headers.py is missing")
 
     plans = sorted(DOCS_PLANS.glob("*.md")) if DOCS_PLANS.exists() else []
     if not plans:
@@ -79,6 +85,29 @@ def main():
         failures.append("REST timeout validation must reject non-finite values")
     if "timeout = _prepare_request_timeout(_request_timeout)" not in rest:
         failures.append("REST requests must validate timeouts before transport dispatch")
+    if "def _resolve_content_type(headers):" not in rest:
+        failures.append("REST requests must resolve Content-Type in a helper")
+    if "key.lower() == 'content-type'" not in rest:
+        failures.append("REST Content-Type lookup must be case-insensitive")
+    if "value.split(';', 1)[0].strip().lower()" not in rest:
+        failures.append("REST Content-Type routing must use the normalized base media type")
+    if "del headers[content_type_header]" not in rest:
+        failures.append("multipart routing must remove the resolved Content-Type spelling")
+    if "multiple Content-Type values" not in rest:
+        failures.append("REST requests must reject ambiguous Content-Type variants")
+    request_headers_test = (
+        REQUEST_HEADERS_TEST.read_text(encoding="utf-8")
+        if REQUEST_HEADERS_TEST.exists()
+        else ""
+    )
+    for test_name in (
+        "test_parameterized_json_content_type_uses_json_body_without_duplicate_header",
+        "test_lowercase_parameterized_form_content_type_uses_form_fields",
+        "test_lowercase_parameterized_multipart_header_is_removed_from_copy",
+        "test_duplicate_content_type_case_variants_fail_before_transport",
+    ):
+        if f"def {test_name}():" not in request_headers_test:
+            failures.append(f"REST Content-Type coverage is missing: {test_name}")
     if 'logger.debug("response body: %s", r.data)' in rest:
         failures.append("REST debug logging must not emit response bodies")
     if '"response received: status=%s bytes=%s"' not in rest:
