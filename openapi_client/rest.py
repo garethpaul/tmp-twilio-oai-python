@@ -260,8 +260,12 @@ class RESTClientObject(object):
         if _preload_content:
             r = RESTResponse(r)
 
-            # log response body
-            logger.debug("response body: %s", r.data)
+            response_size = len(r.data) if r.data is not None else 0
+            logger.debug(
+                "response received: status=%s bytes=%s",
+                r.status,
+                response_size,
+            )
 
         if not 200 <= r.status <= 299:
             if r.status == 401:

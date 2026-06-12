@@ -2,6 +2,8 @@
 
 ## 2026-06-12
 
+- Replaced raw REST response-body debug logging with status and byte-count
+  metadata, with no-network privacy regressions for success and error payloads.
 - Rejected malformed REST request timeout values before invoking urllib3 so an
   intended bounded request cannot silently fall back to transport defaults.
 - Added no-network coverage for default, total, connect/read, non-positive,
