@@ -1,11 +1,28 @@
 # Changes
 
+## 2026-06-12
+
+- Rejected malformed REST request timeout values before invoking urllib3 so an
+  intended bounded request cannot silently fall back to transport defaults.
+- Added no-network coverage for default, total, connect/read, non-positive,
+  non-finite, boolean, and malformed timeout forms.
+
 ## 2026-06-10
 
+- Normalized urllib3 transport failures into `ApiException(status=0)` while
+  preserving the original exception cause, with a no-network timeout test.
+- Added an isolated install/import smoke test for the built wheel and made the
+  Makefile verification paths independent of the caller's working directory.
+- Scoped vulnerability auditing to the declared runtime dependency graph and
+  added dependency consistency checks with ambient `PYTHONPATH` removed.
+- Fixed CI to Ubuntu 24.04, added concurrency cancellation, and annotated
+  immutable action pins with their verified release versions.
 - Raised the supported Python floor to 3.10 and added a maintained-runtime CI
   matrix through Python 3.14.
 - Added pinned runtime and verification requirements, PEP 517 source/wheel
   builds, and dependency auditing to `make check`.
+- Pinned pip 26.1.2 in the verification environment to remediate
+  `PYSEC-2026-196` in hosted runner images.
 - Added least-privilege GitHub Actions verification with immutable action pins.
 - Removed stale Travis and GitLab matrices that only targeted unsupported
   Python 3.6 through 3.9 releases.

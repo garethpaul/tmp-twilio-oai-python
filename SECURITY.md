@@ -34,6 +34,13 @@ Helpful reports include:
 - Review found infrastructure, deployment, proxy, or cloud configuration; changes in those areas should receive security-focused review before merge.
 - Review found secret-like configuration names that require careful review before use; changes in those areas should receive security-focused review before merge.
 - Dependency manifests detected: requirements.txt. Dependency updates should preserve lockfiles when present and avoid introducing packages without a clear maintenance reason.
+- `make check` audits the exact runtime requirements, rejects inconsistent
+  installed dependencies, and imports the built wheel from an isolated target
+  with ambient `PYTHONPATH` entries removed.
+- Transport failures are normalized without logging credentials, while the
+  original urllib3 cause remains available to trusted callers for diagnosis.
+- Malformed timeout values fail before transport dispatch so invalid bounded
+  request configuration cannot silently become an unbounded/default request.
 
 ## Service and API Notes
 
