@@ -45,6 +45,8 @@ Helpful reports include:
   Twilio success or error payloads into logs.
 - REST request routing rejects conflicting Content-Type case variants and uses
   the normalized base media type before selecting an encoder.
+- Basic auth eligibility is evaluated against the effective request host, so
+  operation-level overrides cannot route credentials to non-local plain HTTP.
 
 ## Service and API Notes
 
