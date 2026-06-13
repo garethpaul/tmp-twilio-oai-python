@@ -69,8 +69,10 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   exception body handling so client errors are not masked by response decoding,
   and query auth parameter handling for requests with no preexisting query
   list. Basic auth tests also ensure credentials are not attached to non-local
-  plain HTTP hosts, including operation-level host overrides, and REST request
-  tests ensure caller-provided header
+  plain HTTP hosts, including operation-level host overrides. The dispatch-time
+  host remains the single authorization decision even when the configured
+  default host differs from an operation override, and REST request tests
+  ensure caller-provided header
   dictionaries are not mutated while defaults are prepared. Content-Type
   routing is case-insensitive, accepts media-type parameters, and rejects
   ambiguous duplicate spellings before dispatch. REST request tests
@@ -122,6 +124,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   host-scheme guard.
 - See `docs/plans/2026-06-13-effective-host-basic-auth.md` for the
   operation-level host override credential guard.
+- See `docs/plans/2026-06-13-effective-host-auth-materialization.md` for the
+  dispatch-time host authorization boundary.
 - See `docs/plans/2026-06-09-api-exception-body.md` for the API exception body
   preservation guard.
 - See `docs/plans/2026-06-09-query-auth-parameters.md` for the query auth

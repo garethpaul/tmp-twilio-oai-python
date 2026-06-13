@@ -2,6 +2,8 @@
 
 ## 2026-06-13
 
+- Made the dispatch-time host the single Basic auth authorization decision so
+  trusted overrides are not suppressed by an unrelated default host.
 - Applied the Basic auth scheme guard to operation-level request host
   overrides so non-local plain HTTP destinations cannot receive credentials.
 
