@@ -47,6 +47,8 @@ Helpful reports include:
   the normalized base media type before selecting an encoder.
 - Basic auth eligibility is evaluated against the effective request host, so
   operation-level overrides cannot route credentials to non-local plain HTTP.
+- Credential settings are materialized without default-host prefiltering; the
+  dispatch-time host remains the single Basic auth authorization boundary.
 
 ## Service and API Notes
 

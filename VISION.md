@@ -21,6 +21,7 @@ Priority:
 - Avoid emitting auth headers from missing, blank, or whitespace runtime credentials
 - Avoid sending Basic auth credentials to non-local plain HTTP hosts
 - Apply the Basic auth host guard to operation-level host overrides
+- Keep the dispatch-time host as the single Basic auth authorization decision
 - Keep generated auth parameter mutation safe when query strings start empty
 - Avoid mutating caller-owned REST request headers
 - Route request bodies from one unambiguous, case-insensitive Content-Type

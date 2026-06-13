@@ -16,6 +16,7 @@ TIMEOUT_PLAN = DOCS_PLANS / "2026-06-12-rest-timeout-validation.md"
 RESPONSE_LOGGING_PLAN = DOCS_PLANS / "2026-06-12-rest-response-logging.md"
 CONTENT_TYPE_PLAN = DOCS_PLANS / "2026-06-12-content-type-routing.md"
 EFFECTIVE_HOST_AUTH_PLAN = DOCS_PLANS / "2026-06-13-effective-host-basic-auth.md"
+AUTH_MATERIALIZATION_PLAN = DOCS_PLANS / "2026-06-13-effective-host-auth-materialization.md"
 ARTIFACT_CHECKER = ROOT / "scripts" / "check_package_artifact.py"
 REQUEST_HEADERS_TEST = ROOT / "test" / "test_rest_request_headers.py"
 AUTH_CONFIGURATION_TEST = ROOT / "test" / "test_auth_configuration.py"
@@ -46,6 +47,8 @@ def main():
         failures.append("docs/plans/2026-06-12-content-type-routing.md is missing")
     if not EFFECTIVE_HOST_AUTH_PLAN.exists():
         failures.append("docs/plans/2026-06-13-effective-host-basic-auth.md is missing")
+    if not AUTH_MATERIALIZATION_PLAN.exists():
+        failures.append("docs/plans/2026-06-13-effective-host-auth-materialization.md is missing")
     if not REQUEST_HEADERS_TEST.exists():
         failures.append("test/test_rest_request_headers.py is missing")
 
@@ -67,6 +70,10 @@ def main():
         failures.append("local Basic auth exceptions must be limited to plain HTTP")
     if "LOCAL_BASIC_AUTH_HOSTS" not in configuration:
         failures.append("openapi_client/configuration.py must allow explicit local Basic auth hosts")
+    if "if basic_auth_token:" not in configuration:
+        failures.append("Basic auth credentials must remain available for effective-host dispatch")
+    if "if basic_auth_token and self.host_allows_basic_auth():" in configuration:
+        failures.append("Configuration must not prefilter Basic auth using the default host")
 
     api_client = (ROOT / "openapi_client" / "api_client.py").read_text(encoding="utf-8")
     for contract in (
@@ -84,6 +91,7 @@ def main():
         auth_test = AUTH_CONFIGURATION_TEST.read_text(encoding="utf-8")
         for contract in (
             "test_basic_auth_uses_effective_request_host",
+            "test_https_override_can_authorize_when_default_host_is_disallowed",
             '("https://api.example.test", True)',
             '("http://localhost:8080", True)',
             '("http://api.example.test", False)',
@@ -102,6 +110,9 @@ def main():
             failures.append(
                 f"{relative_path} must document the effective-host Basic auth guard"
             )
+    for relative_path in ("README.md", "SECURITY.md", "VISION.md", "CHANGES.md"):
+        if "dispatch-time host" not in (ROOT / relative_path).read_text(encoding="utf-8"):
+            failures.append(f"{relative_path} must document dispatch-time host authorization")
 
     rest = (ROOT / "openapi_client" / "rest.py").read_text(encoding="utf-8")
     if "headers = dict(headers or {})" not in rest:

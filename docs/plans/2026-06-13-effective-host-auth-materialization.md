@@ -1,6 +1,6 @@
 # Effective Host Auth Materialization
 
-## Status: Planned
+## Status: Completed
 
 ## Context
 
@@ -59,3 +59,28 @@ missing override coverage, documentation drift, and stale plan status.
 - Do not change the scheme/localhost trust policy, credential trimming,
   generated endpoint signatures, query auth, content routing, or live API use.
 - Do not use Twilio credentials or make network requests.
+
+## Work Completed
+
+- Materialized nonblank runtime Basic auth credentials without consulting the
+  configured default host.
+- Retained scheme and localhost filtering in effective-host request dispatch.
+- Added a captured-transport regression for an insecure default host with a
+  trusted HTTPS operation override.
+- Extended fail-closed source, test, plan, and documentation contracts.
+
+## Verification
+
+- Focused `test/test_auth_configuration.py` passed 11 tests without network
+  access or Twilio credentials.
+- The pinned Python 3.12 `make check` completed under a 180-second hard timeout:
+  376 tests passed, source and wheel builds succeeded, the isolated wheel import
+  passed, `pip check` found no broken requirements, and `pip-audit` found no
+  known vulnerabilities.
+- The same bounded full gate passed from an external working directory.
+- Six focused mutations covering default-host prefiltering, removed or ignored
+  dispatch filtering, missing override coverage, documentation drift, and plan
+  status were rejected.
+- Plan-aware auth-boundary, API-contract, testing, and maintainability review
+  found no actionable findings. Final diff, artifact, and secret audits passed
+  before shipment.

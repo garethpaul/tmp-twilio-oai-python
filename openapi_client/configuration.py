@@ -395,7 +395,7 @@ conf = openapi_client.Configuration(
         """
         auth = {}
         basic_auth_token = self.get_basic_auth_token()
-        if basic_auth_token and self.host_allows_basic_auth():
+        if basic_auth_token:
             auth['accountSid_authToken'] = {
                 'type': 'basic',
                 'in': 'header',

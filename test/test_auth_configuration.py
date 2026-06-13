@@ -186,3 +186,31 @@ def test_basic_auth_uses_effective_request_host(
 
     assert captured["url"] == request_host + "/2010-04-01/Accounts.json"
     assert ("Authorization" in captured["headers"]) is expect_authorization
+
+
+def test_https_override_can_authorize_when_default_host_is_disallowed():
+    configuration = Configuration(
+        host="http://api.example.test",
+        username="AC123",
+        password="secret",
+    )
+    client = ApiClient(configuration)
+    captured = {}
+
+    def capture_request(method, url, headers=None, **kwargs):
+        captured["url"] = url
+        captured["headers"] = headers
+        return DummyResponse()
+
+    client.request = capture_request
+    client.call_api(
+        "/2010-04-01/Accounts.json",
+        "GET",
+        auth_settings=["accountSid_authToken"],
+        _host="https://api.example.test",
+        _return_http_data_only=True,
+    )
+
+    expected = base64.b64encode(b"AC123:secret").decode("ascii")
+    assert captured["url"] == "https://api.example.test/2010-04-01/Accounts.json"
+    assert captured["headers"]["Authorization"] == "Basic %s" % expected
