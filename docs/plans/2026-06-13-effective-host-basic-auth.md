@@ -1,6 +1,6 @@
 # Effective Host Basic Auth Guard
 
-## Status: In Progress
+## Status: Completed
 
 ## Context
 
@@ -41,10 +41,15 @@ the existing host-scheme guard and receive Twilio credentials.
 
 ## Verification
 
-- Run focused auth and query-auth tests.
-- Run the pinned Python 3.12 `make check` gate, including 371+ offline tests,
-  source/wheel builds, isolated wheel import, `pip check`, and `pip-audit`.
-- Run the same gate from outside the repository against a disposable snapshot.
-- Reject hostile mutations for effective-host selection, auth propagation,
-  insecure override handling, tests, documentation, and plan completion.
-- Audit the exact diff, generated artifacts, secret patterns, and worktree.
+- Focused auth and query-auth tests passed 11 tests without network access.
+- The full offline suite passed 375 tests under Python 3.12.8.
+- The pinned Python 3.12 `make check` gate passed twice in a disposable
+  exact-source snapshot, including 375 tests, source and wheel builds, isolated
+  wheel import, `pip check`, and `pip-audit` with no known vulnerabilities.
+- The second full gate was invoked from `/tmp`, confirming caller-directory
+  independence without deleting or overwriting repository build outputs.
+- Ten hostile mutations for effective-host selection, scheme restrictions,
+  auth propagation, URL selection, insecure override coverage, documentation,
+  and plan completion were rejected with focused diagnostics.
+- Exact diff, generated-artifact, secret-pattern, and worktree audits passed;
+  ignored bytecode caches were preserved and excluded from the commit.

@@ -15,8 +15,10 @@ TRANSPORT_PLAN = DOCS_PLANS / "2026-06-10-rest-transport-errors.md"
 TIMEOUT_PLAN = DOCS_PLANS / "2026-06-12-rest-timeout-validation.md"
 RESPONSE_LOGGING_PLAN = DOCS_PLANS / "2026-06-12-rest-response-logging.md"
 CONTENT_TYPE_PLAN = DOCS_PLANS / "2026-06-12-content-type-routing.md"
+EFFECTIVE_HOST_AUTH_PLAN = DOCS_PLANS / "2026-06-13-effective-host-basic-auth.md"
 ARTIFACT_CHECKER = ROOT / "scripts" / "check_package_artifact.py"
 REQUEST_HEADERS_TEST = ROOT / "test" / "test_rest_request_headers.py"
+AUTH_CONFIGURATION_TEST = ROOT / "test" / "test_auth_configuration.py"
 
 
 def main():
@@ -42,6 +44,8 @@ def main():
         failures.append("docs/plans/2026-06-12-rest-response-logging.md is missing")
     if not CONTENT_TYPE_PLAN.exists():
         failures.append("docs/plans/2026-06-12-content-type-routing.md is missing")
+    if not EFFECTIVE_HOST_AUTH_PLAN.exists():
+        failures.append("docs/plans/2026-06-13-effective-host-basic-auth.md is missing")
     if not REQUEST_HEADERS_TEST.exists():
         failures.append("test/test_rest_request_headers.py is missing")
 
@@ -55,10 +59,49 @@ def main():
             failures.append(f"{plan_path.relative_to(ROOT)} must record completed status and make check verification")
 
     configuration = (ROOT / "openapi_client" / "configuration.py").read_text(encoding="utf-8")
-    if "def host_allows_basic_auth(self):" not in configuration:
+    if "def host_allows_basic_auth(self, host=None):" not in configuration:
         failures.append("openapi_client/configuration.py must guard Basic auth by host scheme")
+    if "effective_host = self.host if host is None else host" not in configuration:
+        failures.append("Basic auth host checks must honor an explicit effective host")
+    if 'parsed_host.scheme == "http"' not in configuration:
+        failures.append("local Basic auth exceptions must be limited to plain HTTP")
     if "LOCAL_BASIC_AUTH_HOSTS" not in configuration:
         failures.append("openapi_client/configuration.py must allow explicit local Basic auth hosts")
+
+    api_client = (ROOT / "openapi_client" / "api_client.py").read_text(encoding="utf-8")
+    for contract in (
+        "request_host = self.configuration.host if _host is None else _host",
+        "request_host=request_host",
+        "auth_setting['type'] == 'basic'",
+        "self.configuration.host_allows_basic_auth(",
+        "url = request_host + resource_path",
+    ):
+        if contract not in api_client:
+            failures.append(f"effective-host Basic auth contract is missing: {contract}")
+    if not AUTH_CONFIGURATION_TEST.exists():
+        failures.append("test/test_auth_configuration.py is missing")
+    else:
+        auth_test = AUTH_CONFIGURATION_TEST.read_text(encoding="utf-8")
+        for contract in (
+            "test_basic_auth_uses_effective_request_host",
+            '("https://api.example.test", True)',
+            '("http://localhost:8080", True)',
+            '("http://api.example.test", False)',
+            '("ftp://localhost", False)',
+            'assert captured["url"] == request_host +',
+        ):
+            if contract not in auth_test:
+                failures.append(f"effective-host Basic auth coverage is missing: {contract}")
+    documentation_contracts = {
+        "README.md": "operation-level host overrides",
+        "SECURITY.md": "effective request host",
+        "VISION.md": "operation-level host overrides",
+    }
+    for relative_path, contract in documentation_contracts.items():
+        if contract not in (ROOT / relative_path).read_text(encoding="utf-8"):
+            failures.append(
+                f"{relative_path} must document the effective-host Basic auth guard"
+            )
 
     rest = (ROOT / "openapi_client" / "rest.py").read_text(encoding="utf-8")
     if "headers = dict(headers or {})" not in rest:

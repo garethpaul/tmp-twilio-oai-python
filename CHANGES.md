@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-06-13
+
+- Applied the Basic auth scheme guard to operation-level request host
+  overrides so non-local plain HTTP destinations cannot receive credentials.
+
 ## 2026-06-12
 
 - Made REST Content-Type resolution case-insensitive and parameter-aware,

@@ -180,18 +180,17 @@ class ApiClient(object):
         if body:
             body = self.sanitize_for_serialization(body)
 
+        request_host = self.configuration.host if _host is None else _host
+
         # auth setting
         if auth_settings and query_params is None:
             query_params = []
         self.update_params_for_auth(header_params, query_params,
-                                    auth_settings, resource_path, method, body)
+                                    auth_settings, resource_path, method, body,
+                                    request_host=request_host)
 
         # request url
-        if _host is None:
-            url = self.configuration.host + resource_path
-        else:
-            # use server/host defined in path or operation instead
-            url = _host + resource_path
+        url = request_host + resource_path
 
         try:
             # perform request and return response
@@ -585,7 +584,8 @@ class ApiClient(object):
             return content_types[0]
 
     def update_params_for_auth(self, headers, querys, auth_settings,
-                               resource_path, method, body):
+                               resource_path, method, body,
+                               request_host=None):
         """Updates header and query params based on authentication setting.
 
         :param headers: Header parameters dict to be updated.
@@ -595,6 +595,7 @@ class ApiClient(object):
         :param method: A string representation of the HTTP request method.
         :param body: A object representing the body of the HTTP request.
             The object type is the return value of _encoder.default().
+        :param request_host: Effective host selected for this request.
         """
         if not auth_settings:
             return
@@ -602,6 +603,11 @@ class ApiClient(object):
         for auth in auth_settings:
             auth_setting = self.configuration.auth_settings().get(auth)
             if auth_setting:
+                if (auth_setting['type'] == 'basic' and
+                        not self.configuration.host_allows_basic_auth(
+                            request_host
+                        )):
+                    continue
                 if auth_setting['in'] == 'cookie':
                     headers['Cookie'] = auth_setting['value']
                 elif auth_setting['in'] == 'header':

@@ -378,11 +378,15 @@ conf = openapi_client.Configuration(
             basic_auth=username + ':' + password
         ).get('authorization')
 
-    def host_allows_basic_auth(self):
-        parsed_host = urlparse(self.host or "")
+    def host_allows_basic_auth(self, host=None):
+        effective_host = self.host if host is None else host
+        parsed_host = urlparse(effective_host or "")
         if parsed_host.scheme == "https":
             return True
-        return parsed_host.hostname in LOCAL_BASIC_AUTH_HOSTS
+        return (
+            parsed_host.scheme == "http" and
+            parsed_host.hostname in LOCAL_BASIC_AUTH_HOSTS
+        )
 
     def auth_settings(self):
         """Gets Auth Settings dict for api client.
