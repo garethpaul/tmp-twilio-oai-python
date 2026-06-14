@@ -1,6 +1,6 @@
 # Auth Header Case Precedence
 
-## Status: Planned
+## Status: Completed
 
 ## Context
 
@@ -46,6 +46,20 @@ header spellings.
 - hostile case-folding, generated-winner, spelling, input-immutability,
   effective-host, documentation, and plan-status mutations
 - generated-artifact, credential-pattern, exact-diff, and staged-path audits
+
+## Verification Results
+
+- The focused auth and header-precedence regressions passed all 15 cases, and
+  the complete offline suite passed all 380 tests.
+- The repository and external-directory pinned `make check` passed Python
+  compilation, documentation contracts, tests, source and wheel builds,
+  isolated wheel import, `pip check`, and `pip-audit`.
+- Seven hostile auth-header case mutations were rejected across case folding,
+  generated-winner ordering, auth assignment, regression coverage,
+  effective-host forwarding, maintained documentation, and completed-plan
+  evidence.
+- Generated-artifact, credential-pattern, exact-diff, staged-path, and
+  whitespace audits passed.
 
 ## Risks
 

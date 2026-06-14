@@ -63,7 +63,7 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   wheel, dependency consistency checks, and a security audit of the declared
   runtime dependency graph, including transitive dependencies. Ambient
   `PYTHONPATH` entries are excluded from dependency verification. The suite has
-  371 offline tests.
+  380 offline tests.
 - The pytest suite includes no-network checks for default host configuration
   and runtime-only, trimmed, non-empty Basic auth headers. It also covers API
   exception body handling so client errors are not masked by response decoding,
@@ -76,7 +76,9 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   are prepared. Operation header precedence keeps client defaults as
   fallbacks without replacing endpoint-specific metadata on exact-name
   conflicts. Case-insensitive header precedence also removes differently cased
-  defaults when an operation supplies the HTTP-equivalent name. Content-Type
+  defaults when an operation supplies the HTTP-equivalent name. Auth header case precedence
+  ensures generated credentials remain the sole final winner even when an
+  operation used different casing. Content-Type
   routing is case-insensitive, accepts media-type parameters, and rejects
   ambiguous duplicate spellings before dispatch. REST request tests
   also ensure write methods append query parameters to existing query strings
@@ -155,6 +157,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   header precedence at the API dispatch boundary.
 - See `docs/plans/2026-06-14-case-insensitive-header-precedence.md` for
   HTTP-equivalent header conflict handling.
+- See `docs/plans/2026-06-14-auth-header-case-precedence.md` for generated
+  credential precedence over differently cased operation headers.
 
 ## Contributing
 

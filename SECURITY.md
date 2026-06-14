@@ -53,6 +53,8 @@ Helpful reports include:
   endpoint-specific request metadata such as `Content-Type`.
 - Case-insensitive header precedence prevents duplicate authentication or
   content metadata under differently cased HTTP names.
+- Auth header case precedence removes differently cased operation credentials
+  before generated authentication is inserted at the dispatch boundary.
 
 ## Service and API Notes
 

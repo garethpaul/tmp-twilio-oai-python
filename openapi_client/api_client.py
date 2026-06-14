@@ -115,6 +115,15 @@ class ApiClient(object):
     def set_default_header(self, header_name, header_value):
         self.default_headers[header_name] = header_value
 
+    @staticmethod
+    def _set_header_case_insensitively(headers, name, value):
+        normalized_name = name.lower()
+        for existing_name in list(headers):
+            if (isinstance(existing_name, str) and
+                    existing_name.lower() == normalized_name):
+                del headers[existing_name]
+        headers[name] = value
+
     def __call_api(
         self,
         resource_path: str,
@@ -619,10 +628,16 @@ class ApiClient(object):
                         )):
                     continue
                 if auth_setting['in'] == 'cookie':
-                    headers['Cookie'] = auth_setting['value']
+                    self._set_header_case_insensitively(
+                        headers, 'Cookie', auth_setting['value']
+                    )
                 elif auth_setting['in'] == 'header':
                     if auth_setting['type'] != 'http-signature':
-                        headers[auth_setting['key']] = auth_setting['value']
+                        self._set_header_case_insensitively(
+                            headers,
+                            auth_setting['key'],
+                            auth_setting['value'],
+                        )
                 elif auth_setting['in'] == 'query':
                     querys.append((auth_setting['key'], auth_setting['value']))
                 else:

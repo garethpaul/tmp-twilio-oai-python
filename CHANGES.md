@@ -2,6 +2,8 @@
 
 ## 2026-06-14
 
+- Added auth header case precedence so generated credentials replace
+  HTTP-equivalent operation header spellings before transport.
 - Added case-insensitive header precedence for HTTP-equivalent operation names.
 - Fixed operation header precedence so client defaults fill missing values
   without overwriting or mutating endpoint-specific request headers.

@@ -21,6 +21,7 @@ AUTH_MATERIALIZATION_PLAN = DOCS_PLANS / "2026-06-13-effective-host-auth-materia
 ROOT_CLEANUP_PLAN = DOCS_PLANS / "2026-06-14-make-root-cleanup-protection.md"
 HEADER_PRECEDENCE_PLAN = DOCS_PLANS / "2026-06-14-operation-header-precedence.md"
 CASE_INSENSITIVE_HEADER_PLAN = DOCS_PLANS / "2026-06-14-case-insensitive-header-precedence.md"
+AUTH_HEADER_CASE_PLAN = DOCS_PLANS / "2026-06-14-auth-header-case-precedence.md"
 ARTIFACT_CHECKER = ROOT / "scripts" / "check_package_artifact.py"
 REQUEST_HEADERS_TEST = ROOT / "test" / "test_rest_request_headers.py"
 AUTH_CONFIGURATION_TEST = ROOT / "test" / "test_auth_configuration.py"
@@ -60,6 +61,8 @@ def main():
         failures.append("docs/plans/2026-06-14-operation-header-precedence.md is missing")
     if not CASE_INSENSITIVE_HEADER_PLAN.exists():
         failures.append("docs/plans/2026-06-14-case-insensitive-header-precedence.md is missing")
+    if not AUTH_HEADER_CASE_PLAN.exists():
+        failures.append("docs/plans/2026-06-14-auth-header-case-precedence.md is missing")
     if not REQUEST_HEADERS_TEST.exists():
         failures.append("test/test_rest_request_headers.py is missing")
 
@@ -91,6 +94,16 @@ def main():
             if evidence not in plan:
                 failures.append(f"{CASE_INSENSITIVE_HEADER_PLAN.relative_to(ROOT)} must record verification evidence: {evidence}")
 
+    if AUTH_HEADER_CASE_PLAN.exists():
+        plan = AUTH_HEADER_CASE_PLAN.read_text(encoding="utf-8")
+        for evidence in (
+            "Status: Completed",
+            "repository and external-directory pinned `make check` passed",
+            "hostile auth-header case mutations were rejected",
+        ):
+            if evidence not in plan:
+                failures.append(f"{AUTH_HEADER_CASE_PLAN.relative_to(ROOT)} must record verification evidence: {evidence}")
+
     configuration = (ROOT / "openapi_client" / "configuration.py").read_text(encoding="utf-8")
     if "def host_allows_basic_auth(self, host=None):" not in configuration:
         failures.append("openapi_client/configuration.py must guard Basic auth by host scheme")
@@ -120,6 +133,22 @@ def main():
     if "header_params.update(self.default_headers)" in api_client:
         failures.append("ApiClient defaults must not overwrite operation-specific headers")
     for contract in (
+        "def _set_header_case_insensitively(headers, name, value):",
+        "existing_name.lower() == normalized_name",
+        "del headers[existing_name]",
+        "headers[name] = value",
+        "headers, 'Cookie', auth_setting['value']",
+        "auth_setting['key'],",
+        "auth_setting['value'],",
+    ):
+        if contract not in api_client:
+            failures.append(f"ApiClient auth header case precedence is missing: {contract}")
+    helper_start = api_client.find("def _set_header_case_insensitively(headers, name, value):")
+    helper_delete = api_client.find("del headers[existing_name]", helper_start)
+    helper_assign = api_client.find("headers[name] = value", helper_start)
+    if helper_start < 0 or helper_delete < 0 or helper_assign < 0 or helper_delete > helper_assign:
+        failures.append("ApiClient must remove HTTP-equivalent auth headers before assigning the generated winner")
+    for contract in (
         "request_host = self.configuration.host if _host is None else _host",
         "request_host=request_host",
         "auth_setting['type'] == 'basic'",
@@ -135,11 +164,17 @@ def main():
         for contract in (
             "test_basic_auth_uses_effective_request_host",
             "test_https_override_can_authorize_when_default_host_is_disallowed",
+            "test_basic_auth_replaces_case_insensitive_operation_authorization",
+            "test_cookie_auth_replaces_case_insensitive_existing_cookie",
             '("https://api.example.test", True)',
             '("http://localhost:8080", True)',
             '("http://api.example.test", False)',
             '("ftp://localhost", False)',
             'assert captured["url"] == request_host +',
+            'assert captured["headers"]["Authorization"] == "Basic %s" % expected',
+            'assert "authorization" not in captured["headers"]',
+            "assert operation_headers == original_headers",
+            '"Cookie": "session=generated"',
         ):
             if contract not in auth_test:
                 failures.append(f"effective-host Basic auth coverage is missing: {contract}")
@@ -329,6 +364,8 @@ def main():
         failures.append("README must index operation header precedence evidence")
     if "docs/plans/2026-06-14-case-insensitive-header-precedence.md" not in (ROOT / "README.md").read_text(encoding="utf-8"):
         failures.append("README must index case-insensitive header precedence evidence")
+    if "docs/plans/2026-06-14-auth-header-case-precedence.md" not in (ROOT / "README.md").read_text(encoding="utf-8"):
+        failures.append("README must index auth header case precedence evidence")
 
     if not HEADER_PRECEDENCE_TEST.exists():
         failures.append("test/test_api_client_header_precedence.py is missing")
@@ -356,6 +393,8 @@ def main():
             failures.append(f"{relative_path} must document operation header precedence")
         if "case-insensitive header precedence" not in (ROOT / relative_path).read_text(encoding="utf-8").lower():
             failures.append(f"{relative_path} must document case-insensitive header precedence")
+        if "auth header case precedence" not in (ROOT / relative_path).read_text(encoding="utf-8").lower():
+            failures.append(f"{relative_path} must document auth header case precedence")
 
     workflow = (ROOT / ".github" / "workflows" / "check.yml").read_text(encoding="utf-8")
     workflow_contracts = [
