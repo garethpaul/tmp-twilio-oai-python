@@ -1,6 +1,6 @@
 # Make Root Cleanup Protection
 
-## Status: Planned
+## Status: Completed
 
 ## Context
 
@@ -56,3 +56,33 @@ README indexing, and this plan's completed evidence.
 This change does not alter generated client code, authentication, transport,
 dependencies, package metadata, workflow policy, or use Twilio credentials or
 live API requests.
+
+## Work Completed
+
+- Marked the root-first repository path as an explicit GNU Make override.
+- Added exact declaration, ordering, alias, cleanup-path, build, README, and
+  plan contracts to the documentation checker.
+- Preserved Python override, package behavior, authentication, workflow, and
+  audit scope.
+
+## Verification Results
+
+- The isolated pinned Python 3.12.8 `make check` passed 376 offline tests,
+  source and wheel builds, isolated wheel import, `pip check`, and `pip-audit`
+  with no known vulnerabilities.
+- All six public aliases passed from repository and external working
+  directories with hostile environment and command-line `ROOT` assignments,
+  for 24 cases.
+- Hostile build, distribution, and egg-info sentinel files remained intact
+  after every package-cleanup target; the explicit Python override remained
+  effective.
+- Eight protected-declaration, duplicate protected/unprotected assignment,
+  placement, alias, cleanup-path, README, and plan mutations were rejected.
+- Plan-aware filesystem-safety, security, package-contract, testing,
+  maintainability, reliability, and project-standards review found no
+  actionable findings.
+- Exact diff, protected client/auth/transport/package/workflow path,
+  generated-artifact, high-confidence secret, and whitespace audits passed.
+- Only explicitly identified validation-created build, distribution, egg-info,
+  bytecode, and pytest-cache paths were removed; no Twilio credentials or live
+  API calls were used.
