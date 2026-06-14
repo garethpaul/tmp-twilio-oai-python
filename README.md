@@ -146,6 +146,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   response diagnostics and payload privacy coverage.
 - See `docs/plans/2026-06-12-content-type-routing.md` for case-insensitive,
   parameter-aware request encoder selection.
+- See `docs/plans/2026-06-14-make-root-cleanup-protection.md` for authoritative
+  repository-root and package-cleanup selection across all Make aliases.
 
 ## Contributing
 
