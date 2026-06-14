@@ -2,6 +2,7 @@
 
 ## 2026-06-14
 
+- Added case-insensitive header precedence for HTTP-equivalent operation names.
 - Fixed operation header precedence so client defaults fill missing values
   without overwriting or mutating endpoint-specific request headers.
 

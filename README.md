@@ -75,7 +75,8 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   ensure caller-provided header dictionaries are not mutated while defaults
   are prepared. Operation header precedence keeps client defaults as
   fallbacks without replacing endpoint-specific metadata on exact-name
-  conflicts. Content-Type
+  conflicts. Case-insensitive header precedence also removes differently cased
+  defaults when an operation supplies the HTTP-equivalent name. Content-Type
   routing is case-insensitive, accepts media-type parameters, and rejects
   ambiguous duplicate spellings before dispatch. REST request tests
   also ensure write methods append query parameters to existing query strings
@@ -152,6 +153,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   repository-root and package-cleanup selection across all Make aliases.
 - See `docs/plans/2026-06-14-operation-header-precedence.md` for request-specific
   header precedence at the API dispatch boundary.
+- See `docs/plans/2026-06-14-case-insensitive-header-precedence.md` for
+  HTTP-equivalent header conflict handling.
 
 ## Contributing
 

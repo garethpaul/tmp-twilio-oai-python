@@ -1,6 +1,6 @@
 # Case-Insensitive Header Precedence
 
-## Status: Planned
+## Status: Completed
 
 ## Context
 
@@ -37,6 +37,20 @@ for an HTTP-equivalent name before transport dispatch.
 - hostile case-folding, explicit-winner, spelling, default-retention,
   input-mutation, documentation, and plan-status mutations
 - generated-artifact, credential-pattern, exact-diff, and staged-path audits
+
+## Verification Results
+
+- Focused case-insensitive precedence regressions and all 378 offline tests
+  passed.
+- The repository and external-directory pinned `make check` passed Python
+  compilation, documentation contracts, tests, source and wheel builds,
+  isolated wheel import, `pip check`, and `pip-audit`.
+- Eight hostile case-insensitive header mutations were rejected across case
+  folding, operation precedence, spelling preservation, unrelated defaults,
+  input immutability, cookie deduplication, maintained documentation, and
+  completed-plan evidence.
+- Generated-artifact, credential-pattern, exact-diff, staged-path, and
+  whitespace audits passed.
 
 ## Risks
 

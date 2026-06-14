@@ -139,9 +139,18 @@ class ApiClient(object):
 
         # header parameters
         operation_headers = header_params or {}
-        header_params = dict(self.default_headers)
-        header_params.update(operation_headers)
+        header_params = {}
+        header_names = {}
+        for source_headers in (self.default_headers, operation_headers):
+            for name, value in source_headers.items():
+                normalized_name = name.lower() if isinstance(name, str) else name
+                if normalized_name in header_names:
+                    del header_params[header_names[normalized_name]]
+                header_params[name] = value
+                header_names[normalized_name] = name
         if self.cookie:
+            if 'cookie' in header_names:
+                del header_params[header_names['cookie']]
             header_params['Cookie'] = self.cookie
         if header_params:
             header_params = self.sanitize_for_serialization(header_params)

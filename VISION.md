@@ -23,6 +23,7 @@ Priority:
 - Apply the Basic auth host guard to operation-level host overrides
 - Keep the dispatch-time host as the single Basic auth authorization decision
 - Preserve operation header precedence over client-wide defaults
+- Preserve case-insensitive header precedence for HTTP-equivalent names
 - Keep generated auth parameter mutation safe when query strings start empty
 - Avoid mutating caller-owned REST request headers
 - Route request bodies from one unambiguous, case-insensitive Content-Type

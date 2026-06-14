@@ -51,6 +51,8 @@ Helpful reports include:
   dispatch-time host remains the single Basic auth authorization boundary.
 - Operation header precedence prevents global defaults from replacing
   endpoint-specific request metadata such as `Content-Type`.
+- Case-insensitive header precedence prevents duplicate authentication or
+  content metadata under differently cased HTTP names.
 
 ## Service and API Notes
 
