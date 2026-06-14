@@ -49,6 +49,8 @@ Helpful reports include:
   operation-level overrides cannot route credentials to non-local plain HTTP.
 - Credential settings are materialized without default-host prefiltering; the
   dispatch-time host remains the single Basic auth authorization boundary.
+- Operation header precedence prevents global defaults from replacing
+  endpoint-specific request metadata such as `Content-Type`.
 
 ## Service and API Notes
 

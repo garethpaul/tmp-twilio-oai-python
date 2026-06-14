@@ -72,8 +72,10 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   plain HTTP hosts, including operation-level host overrides. The dispatch-time
   host remains the single authorization decision even when the configured
   default host differs from an operation override, and REST request tests
-  ensure caller-provided header
-  dictionaries are not mutated while defaults are prepared. Content-Type
+  ensure caller-provided header dictionaries are not mutated while defaults
+  are prepared. Operation header precedence keeps client defaults as
+  fallbacks without replacing endpoint-specific metadata on exact-name
+  conflicts. Content-Type
   routing is case-insensitive, accepts media-type parameters, and rejects
   ambiguous duplicate spellings before dispatch. REST request tests
   also ensure write methods append query parameters to existing query strings
@@ -148,6 +150,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   parameter-aware request encoder selection.
 - See `docs/plans/2026-06-14-make-root-cleanup-protection.md` for authoritative
   repository-root and package-cleanup selection across all Make aliases.
+- See `docs/plans/2026-06-14-operation-header-precedence.md` for request-specific
+  header precedence at the API dispatch boundary.
 
 ## Contributing
 

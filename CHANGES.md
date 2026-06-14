@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-06-14
+
+- Fixed operation header precedence so client defaults fill missing values
+  without overwriting or mutating endpoint-specific request headers.
+
 ## 2026-06-13
 
 - Made the dispatch-time host the single Basic auth authorization decision so

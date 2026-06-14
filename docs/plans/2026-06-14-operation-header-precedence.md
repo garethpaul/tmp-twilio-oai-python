@@ -1,6 +1,6 @@
 # Operation Header Precedence
 
-## Status: Planned
+## Status: Completed
 
 ## Context
 
@@ -26,12 +26,14 @@ should fill missing values without overriding or mutating explicit headers.
 
 ## Verification
 
-- focused header-precedence regressions and complete offline test suite
-- repository and external-directory pinned `make check`
-- hostile merge-order, default-retention, explicit-winner, input-mutation,
-  documentation, suite-contract, and plan-status mutations
-- package build/import, dependency, vulnerability, artifact, credential, and
-  exact-diff audits
+- The focused header-precedence regression passed, and the complete offline
+  suite passed with 377 tests.
+- The repository and external-directory pinned `make check` passed.
+- Seven hostile header-precedence mutations were rejected: merge-order,
+  default-retention, explicit-winner, input-mutation, documentation,
+  suite-contract, and plan-status.
+- Source and wheel builds, isolated wheel import, `pip check`, and `pip-audit`
+  passed. Final artifact, credential, and exact-diff audits also passed.
 
 ## Scope Boundary
 

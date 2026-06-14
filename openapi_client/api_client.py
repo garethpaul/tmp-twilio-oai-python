@@ -138,8 +138,9 @@ class ApiClient(object):
         config = self.configuration
 
         # header parameters
-        header_params = header_params or {}
-        header_params.update(self.default_headers)
+        operation_headers = header_params or {}
+        header_params = dict(self.default_headers)
+        header_params.update(operation_headers)
         if self.cookie:
             header_params['Cookie'] = self.cookie
         if header_params:

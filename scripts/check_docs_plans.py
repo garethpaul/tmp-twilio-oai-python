@@ -19,9 +19,11 @@ CONTENT_TYPE_PLAN = DOCS_PLANS / "2026-06-12-content-type-routing.md"
 EFFECTIVE_HOST_AUTH_PLAN = DOCS_PLANS / "2026-06-13-effective-host-basic-auth.md"
 AUTH_MATERIALIZATION_PLAN = DOCS_PLANS / "2026-06-13-effective-host-auth-materialization.md"
 ROOT_CLEANUP_PLAN = DOCS_PLANS / "2026-06-14-make-root-cleanup-protection.md"
+HEADER_PRECEDENCE_PLAN = DOCS_PLANS / "2026-06-14-operation-header-precedence.md"
 ARTIFACT_CHECKER = ROOT / "scripts" / "check_package_artifact.py"
 REQUEST_HEADERS_TEST = ROOT / "test" / "test_rest_request_headers.py"
 AUTH_CONFIGURATION_TEST = ROOT / "test" / "test_auth_configuration.py"
+HEADER_PRECEDENCE_TEST = ROOT / "test" / "test_api_client_header_precedence.py"
 
 
 def main():
@@ -53,6 +55,8 @@ def main():
         failures.append("docs/plans/2026-06-13-effective-host-auth-materialization.md is missing")
     if not ROOT_CLEANUP_PLAN.exists():
         failures.append("docs/plans/2026-06-14-make-root-cleanup-protection.md is missing")
+    if not HEADER_PRECEDENCE_PLAN.exists():
+        failures.append("docs/plans/2026-06-14-operation-header-precedence.md is missing")
     if not REQUEST_HEADERS_TEST.exists():
         failures.append("test/test_rest_request_headers.py is missing")
 
@@ -64,6 +68,15 @@ def main():
         plan = plan_path.read_text(encoding="utf-8")
         if "Status: Completed" not in plan or "make check" not in plan:
             failures.append(f"{plan_path.relative_to(ROOT)} must record completed status and make check verification")
+
+    if HEADER_PRECEDENCE_PLAN.exists():
+        header_plan = HEADER_PRECEDENCE_PLAN.read_text(encoding="utf-8")
+        for evidence in (
+            "repository and external-directory pinned `make check` passed",
+            "hostile header-precedence mutations were rejected",
+        ):
+            if evidence not in header_plan:
+                failures.append(f"{HEADER_PRECEDENCE_PLAN.relative_to(ROOT)} must record verification evidence: {evidence}")
 
     configuration = (ROOT / "openapi_client" / "configuration.py").read_text(encoding="utf-8")
     if "def host_allows_basic_auth(self, host=None):" not in configuration:
@@ -80,6 +93,12 @@ def main():
         failures.append("Configuration must not prefilter Basic auth using the default host")
 
     api_client = (ROOT / "openapi_client" / "api_client.py").read_text(encoding="utf-8")
+    if "operation_headers = header_params or {}" not in api_client:
+        failures.append("ApiClient must preserve the operation header mapping")
+    if "header_params = dict(self.default_headers)\n        header_params.update(operation_headers)" not in api_client:
+        failures.append("ApiClient defaults must be merged before operation-specific headers")
+    if "header_params.update(self.default_headers)" in api_client:
+        failures.append("ApiClient defaults must not overwrite operation-specific headers")
     for contract in (
         "request_host = self.configuration.host if _host is None else _host",
         "request_host=request_host",
@@ -286,6 +305,27 @@ def main():
 
     if "docs/plans/2026-06-14-make-root-cleanup-protection.md" not in (ROOT / "README.md").read_text(encoding="utf-8"):
         failures.append("README must index Make root cleanup protection evidence")
+    if "docs/plans/2026-06-14-operation-header-precedence.md" not in (ROOT / "README.md").read_text(encoding="utf-8"):
+        failures.append("README must index operation header precedence evidence")
+
+    if not HEADER_PRECEDENCE_TEST.exists():
+        failures.append("test/test_api_client_header_precedence.py is missing")
+    else:
+        header_test = HEADER_PRECEDENCE_TEST.read_text(encoding="utf-8")
+        for contract in (
+            "test_operation_headers_override_defaults_without_mutating_input",
+            'client.set_default_header("Content-Type", "application/json")',
+            '"Content-Type": "application/x-www-form-urlencoded"',
+            'assert captured["headers"]["Content-Type"] == "application/x-www-form-urlencoded"',
+            'assert captured["headers"]["X-Default"] == "default-value"',
+            "assert operation_headers == original_headers",
+        ):
+            if contract not in header_test:
+                failures.append(f"operation header precedence coverage is missing: {contract}")
+
+    for relative_path in ("README.md", "SECURITY.md", "VISION.md", "CHANGES.md"):
+        if "operation header precedence" not in (ROOT / relative_path).read_text(encoding="utf-8").lower():
+            failures.append(f"{relative_path} must document operation header precedence")
 
     workflow = (ROOT / ".github" / "workflows" / "check.yml").read_text(encoding="utf-8")
     workflow_contracts = [
