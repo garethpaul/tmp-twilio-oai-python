@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-06-15
+
+- Text responses use declared charsets with replacement decoding and fall back
+  to UTF-8 replacement for unknown charsets.
+
 ## 2026-06-14
 
 - Added auth header case precedence so generated credentials replace

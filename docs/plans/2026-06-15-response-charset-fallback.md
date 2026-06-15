@@ -1,11 +1,13 @@
 ---
 title: Response Charset Fallback
 type: reliability
-status: planned
+status: completed
 date: 2026-06-15
 ---
 
 # Response Charset Fallback
+
+## Status: Completed
 
 ## Problem Frame
 
@@ -61,3 +63,20 @@ limits.
 - Audit exact intended paths, generated artifacts, dependency/vendor drift,
   whitespace, conflict markers, and credential-shaped additions.
 
+## Work Completed
+
+- Added a generated-client helper that honors valid declared charsets with
+  replacement decoding and falls back to UTF-8 replacement for unknown names.
+- Applied the helper only to preloaded text responses, preserving binary, file,
+  and streaming behavior.
+- Added captured-response regressions, package-gate contracts, synchronized
+  guidance, and completed-plan enforcement.
+
+## Verification Completed
+
+- All 384 offline tests passed, including four focused response-charset cases.
+- The repository and external-directory pinned `make check` passed with source
+  and wheel builds, isolated wheel import, dependency consistency, and audit.
+- Eight isolated hostile response-charset mutations were rejected across the
+  helper, fallback, replacement, integration, tests, guidance, and plan status.
+- No live Twilio request, credential, or account data was used.

@@ -22,6 +22,7 @@ ROOT_CLEANUP_PLAN = DOCS_PLANS / "2026-06-14-make-root-cleanup-protection.md"
 HEADER_PRECEDENCE_PLAN = DOCS_PLANS / "2026-06-14-operation-header-precedence.md"
 CASE_INSENSITIVE_HEADER_PLAN = DOCS_PLANS / "2026-06-14-case-insensitive-header-precedence.md"
 AUTH_HEADER_CASE_PLAN = DOCS_PLANS / "2026-06-14-auth-header-case-precedence.md"
+RESPONSE_CHARSET_PLAN = DOCS_PLANS / "2026-06-15-response-charset-fallback.md"
 ARTIFACT_CHECKER = ROOT / "scripts" / "check_package_artifact.py"
 REQUEST_HEADERS_TEST = ROOT / "test" / "test_rest_request_headers.py"
 AUTH_CONFIGURATION_TEST = ROOT / "test" / "test_auth_configuration.py"
@@ -63,6 +64,8 @@ def main():
         failures.append("docs/plans/2026-06-14-case-insensitive-header-precedence.md is missing")
     if not AUTH_HEADER_CASE_PLAN.exists():
         failures.append("docs/plans/2026-06-14-auth-header-case-precedence.md is missing")
+    if not RESPONSE_CHARSET_PLAN.exists():
+        failures.append("docs/plans/2026-06-15-response-charset-fallback.md is missing")
     if not REQUEST_HEADERS_TEST.exists():
         failures.append("test/test_rest_request_headers.py is missing")
 
@@ -277,6 +280,40 @@ def main():
         if response_logging_test_text.count('assert "super-secret" not in caplog.text') != 2:
             failures.append("REST response logging tests must protect both response paths from payload disclosure")
 
+    response_charset_tests = ROOT / "test" / "test_response_charset_fallback.py"
+    if not response_charset_tests.exists():
+        failures.append("test/test_response_charset_fallback.py is missing")
+    else:
+        charset_test_text = response_charset_tests.read_text(encoding="utf-8")
+        for contract in (
+            "test_honors_valid_declared_response_charset",
+            "test_replaces_malformed_bytes_for_declared_charset",
+            "test_unknown_response_charset_falls_back_to_utf8_replacement",
+            "test_binary_and_streaming_responses_skip_text_decoding",
+        ):
+            if contract not in charset_test_text:
+                failures.append(f"response charset regression contract is missing: {contract}")
+
+    api_client_source = (ROOT / "openapi_client" / "api_client.py").read_text(encoding="utf-8")
+    for contract in (
+        "def decode_response_text(data, encoding):",
+        'data.decode(encoding, errors="replace")',
+        'data.decode("utf-8", errors="replace")',
+        "decode_response_text(response_data.data, encoding)",
+    ):
+        if contract not in api_client_source:
+            failures.append(f"response charset source contract is missing: {contract}")
+
+    if RESPONSE_CHARSET_PLAN.exists():
+        charset_plan = RESPONSE_CHARSET_PLAN.read_text(encoding="utf-8")
+        for evidence in (
+            "Status: Completed",
+            "repository and external-directory pinned `make check` passed",
+            "hostile response-charset mutations were rejected",
+        ):
+            if evidence not in charset_plan:
+                failures.append(f"{RESPONSE_CHARSET_PLAN.relative_to(ROOT)} must record verification evidence: {evidence}")
+
     required_files = [
         "pyproject.toml",
         "requirements-dev.txt",
@@ -395,6 +432,8 @@ def main():
             failures.append(f"{relative_path} must document case-insensitive header precedence")
         if "auth header case precedence" not in (ROOT / relative_path).read_text(encoding="utf-8").lower():
             failures.append(f"{relative_path} must document auth header case precedence")
+        if "text responses use declared charsets with replacement decoding" not in (ROOT / relative_path).read_text(encoding="utf-8").lower():
+            failures.append(f"{relative_path} must document response charset fallback")
 
     workflow = (ROOT / ".github" / "workflows" / "check.yml").read_text(encoding="utf-8")
     workflow_contracts = [

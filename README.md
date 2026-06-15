@@ -91,6 +91,8 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   non-positive, boolean, and non-finite values fail before network work.
 - REST debug logging records only response status and byte count; response and
   error bodies remain available to callers without being copied into logs.
+- Text responses use declared charsets with replacement decoding and fall back
+  to UTF-8 replacement for unknown charsets.
 - `make check` also requires completed canonical plans under `docs/plans`.
 - GitHub Actions runs the same gate on Python 3.10, 3.12, and 3.14 with
   read-only permissions, a fixed Ubuntu 24.04 image, bounded jobs, concurrency

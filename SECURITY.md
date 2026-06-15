@@ -43,6 +43,8 @@ Helpful reports include:
   request configuration cannot silently become an unbounded/default request.
 - REST debug diagnostics record response status and byte count without copying
   Twilio success or error payloads into logs.
+- Text responses use declared charsets with replacement decoding and fall back
+  to UTF-8 replacement for unknown charsets.
 - REST request routing rejects conflicting Content-Type case variants and uses
   the normalized base media type before selecting an encoder.
 - Basic auth eligibility is evaluated against the effective request host, so

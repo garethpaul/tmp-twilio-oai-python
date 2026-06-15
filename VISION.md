@@ -35,6 +35,8 @@ Priority:
 - Normalize urllib3 transport failures through the public API exception type
 - Reject malformed request timeout values before invoking urllib3
 - Keep Twilio response payloads out of generated-client debug logs
+- Text responses use declared charsets with replacement decoding and fall back
+  to UTF-8 replacement for unknown charsets
 - Reject unsupported REST methods before invoking the urllib3 pool manager
 - Keep completed maintenance plans under `docs/plans`
 - Verify the built wheel, not only the source checkout, before publishing

@@ -40,6 +40,13 @@ from openapi_client.model_utils import (
 )
 
 
+def decode_response_text(data, encoding):
+    try:
+        return data.decode(encoding, errors="replace")
+    except LookupError:
+        return data.decode("utf-8", errors="replace")
+
+
 class ApiClient(object):
     """Generic API client for OpenAPI client library builds.
 
@@ -238,7 +245,7 @@ class ApiClient(object):
             if content_type is not None:
                 match = re.search(r"charset=([a-zA-Z\-\d]+)[\s\;]?", content_type)
             encoding = match.group(1) if match else "utf-8"
-            response_data.data = response_data.data.decode(encoding)
+            response_data.data = decode_response_text(response_data.data, encoding)
 
         # deserialize response data
         if response_type:
