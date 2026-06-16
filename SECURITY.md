@@ -45,6 +45,9 @@ Helpful reports include:
   Twilio success or error payloads into logs.
 - Text responses use declared charsets with replacement decoding and fall back
   to UTF-8 replacement for unknown charsets.
+- Preloaded responses enforce a configurable decoded body limit so compressed
+  or unexpectedly large payloads cannot be accumulated without a fixed bound;
+  caller-managed streaming remains available for intentional large transfers.
 - REST request routing rejects conflicting Content-Type case variants and uses
   the normalized base media type before selecting an encoder.
 - Basic auth eligibility is evaluated against the effective request host, so

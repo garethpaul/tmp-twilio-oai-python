@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-06-16
+
+- Preloaded responses enforce a configurable decoded body limit, defaulting to
+  5 MiB, and close oversized transports without changing explicit streaming.
+
 ## 2026-06-15
 
 - Text responses use declared charsets with replacement decoding and fall back

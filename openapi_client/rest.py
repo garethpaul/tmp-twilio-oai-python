@@ -24,6 +24,9 @@ from openapi_client.exceptions import ApiException, UnauthorizedException, Forbi
 logger = logging.getLogger(__name__)
 
 
+_RESPONSE_DATA_UNSET = object()
+
+
 def _prepare_request_timeout(value):
     if value is None:
         return None
@@ -58,6 +61,69 @@ def _prepare_request_timeout(value):
         return urllib3.Timeout(total=value)
     except (OverflowError, ValueError) as error:
         raise ApiValueError("Request timeout value is invalid.") from error
+
+
+def _prepare_response_body_size_limit(value):
+    if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+        raise ApiValueError(
+            "Response body size limit must be a positive integer."
+        )
+    return value
+
+
+def _read_response_body(response, limit, request_method):
+    response_headers = getattr(response, "headers", None)
+    if response_headers is None:
+        content_length = response.getheader("Content-Length")
+        content_encoding = response.getheader("Content-Encoding")
+    else:
+        content_length = response_headers.get("Content-Length")
+        content_encoding = response_headers.get("Content-Encoding")
+    try:
+        declared_size = int(content_length)
+    except (TypeError, ValueError):
+        declared_size = None
+
+    encoded_body = (
+        isinstance(content_encoding, str) and
+        content_encoding.strip().lower() not in ("", "identity")
+    )
+    if (request_method != "HEAD" and not encoded_body and
+            declared_size is not None and declared_size > limit):
+        response.close()
+        raise ApiException(
+            status=response.status,
+            reason=(
+                "Response body exceeds the configured "
+                "{0}-byte limit.".format(limit)
+            ),
+        )
+
+    try:
+        data = bytearray()
+        remaining = limit + 1
+        while remaining:
+            chunk = response.read(amt=remaining, decode_content=True)
+            if not chunk:
+                break
+            data.extend(chunk)
+            remaining -= len(chunk)
+    except Exception:
+        response.close()
+        raise
+
+    if len(data) > limit:
+        response.close()
+        raise ApiException(
+            status=response.status,
+            reason=(
+                "Response body exceeds the configured "
+                "{0}-byte limit.".format(limit)
+            ),
+        )
+
+    response.release_conn()
+    return bytes(data)
 
 
 def _append_query_params(url, query_params):
@@ -102,11 +168,11 @@ def _resolve_content_type(headers):
 
 class RESTResponse(io.IOBase):
 
-    def __init__(self, resp):
+    def __init__(self, resp, data=_RESPONSE_DATA_UNSET):
         self.urllib3_response = resp
         self.status = resp.status
         self.reason = resp.reason
-        self.data = resp.data
+        self.data = resp.data if data is _RESPONSE_DATA_UNSET else data
 
     def getheaders(self):
         """Returns a dictionary of the response headers."""
@@ -125,6 +191,10 @@ class RESTClientObject(object):
         # https://github.com/shazow/urllib3/blob/f9409436f83aeb79fbaf090181cd81b784f1b8ce/urllib3/connectionpool.py#L680  # noqa: E501
         # maxsize is the number of requests to host that are allowed in parallel  # noqa: E501
         # Custom SSL certificates and client certificates: http://urllib3.readthedocs.io/en/latest/advanced-usage.html  # noqa: E501
+
+        self.max_response_body_size = _prepare_response_body_size_limit(
+            configuration.max_response_body_size
+        )
 
         # cert_reqs
         if configuration.verify_ssl:
@@ -225,7 +295,7 @@ class RESTClientObject(object):
                     r = self.pool_manager.request(
                         method, url,
                         body=request_body,
-                        preload_content=_preload_content,
+                        preload_content=False,
                         timeout=timeout,
                         headers=headers)
                 elif content_type == 'application/x-www-form-urlencoded':
@@ -233,7 +303,7 @@ class RESTClientObject(object):
                         method, url,
                         fields=post_params,
                         encode_multipart=False,
-                        preload_content=_preload_content,
+                        preload_content=False,
                         timeout=timeout,
                         headers=headers)
                 elif content_type == 'multipart/form-data':
@@ -245,7 +315,7 @@ class RESTClientObject(object):
                         method, url,
                         fields=post_params,
                         encode_multipart=True,
-                        preload_content=_preload_content,
+                        preload_content=False,
                         timeout=timeout,
                         headers=headers)
                 # Pass a `string` parameter directly in the body to support
@@ -256,7 +326,7 @@ class RESTClientObject(object):
                     r = self.pool_manager.request(
                         method, url,
                         body=request_body,
-                        preload_content=_preload_content,
+                        preload_content=False,
                         timeout=timeout,
                         headers=headers)
                 else:
@@ -269,7 +339,7 @@ class RESTClientObject(object):
             else:
                 r = self.pool_manager.request(method, url,
                                               fields=query_params,
-                                              preload_content=_preload_content,
+                                              preload_content=False,
                                               timeout=timeout,
                                               headers=headers)
         except urllib3.exceptions.SSLError as e:
@@ -280,7 +350,15 @@ class RESTClientObject(object):
             raise ApiException(status=0, reason=msg) from e
 
         if _preload_content:
-            r = RESTResponse(r)
+            try:
+                response_data = _read_response_body(
+                    r, self.max_response_body_size, method
+                )
+            except urllib3.exceptions.HTTPError as e:
+                msg = "{0}\n{1}".format(type(e).__name__, str(e))
+                raise ApiException(status=0, reason=msg) from e
+
+            r = RESTResponse(r, response_data)
 
             response_size = len(r.data) if r.data is not None else 0
             logger.debug(

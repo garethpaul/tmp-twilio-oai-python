@@ -63,7 +63,7 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   wheel, dependency consistency checks, and a security audit of the declared
   runtime dependency graph, including transitive dependencies. Ambient
   `PYTHONPATH` entries are excluded from dependency verification. The suite has
-  380 offline tests.
+  401 offline tests.
 - The pytest suite includes no-network checks for default host configuration
   and runtime-only, trimmed, non-empty Basic auth headers. It also covers API
   exception body handling so client errors are not masked by response decoding,
@@ -93,6 +93,9 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   error bodies remain available to callers without being copied into logs.
 - Text responses use declared charsets with replacement decoding and fall back
   to UTF-8 replacement for unknown charsets.
+- Preloaded responses enforce a configurable decoded body limit through
+  `Configuration.max_response_body_size`, defaulting to 5 MiB; oversized
+  responses are closed while explicit streaming stays caller managed.
 - `make check` also requires completed canonical plans under `docs/plans`.
 - GitHub Actions runs the same gate on Python 3.10, 3.12, and 3.14 with
   read-only permissions, a fixed Ubuntu 24.04 image, bounded jobs, concurrency
@@ -161,6 +164,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   HTTP-equivalent header conflict handling.
 - See `docs/plans/2026-06-14-auth-header-case-precedence.md` for generated
   credential precedence over differently cased operation headers.
+- See `docs/plans/2026-06-16-response-body-size-limit.md` for bounded decoded
+  response preloading and transport cleanup coverage.
 
 ## Contributing
 

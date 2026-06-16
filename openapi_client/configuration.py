@@ -208,6 +208,10 @@ conf = openapi_client.Configuration(
         self.retries = None
         """Adding retries to override urllib3 default value 3
         """
+
+        self.max_response_body_size = 5 * 1024 * 1024
+        """Maximum decoded response bytes buffered for preloaded responses.
+        """
         # Enable client side validation
         self.client_side_validation = True
 

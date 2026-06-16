@@ -1,13 +1,13 @@
 ---
 title: Response Body Size Limit
 type: security
-status: planned
+status: completed
 date: 2026-06-16
 ---
 
 # Response Body Size Limit
 
-## Status: Planned
+## Status: Completed
 
 ## Problem Frame
 
@@ -70,8 +70,23 @@ causes verification to fail.
 
 ## Work Completed
 
-Pending implementation.
+- Added a configurable positive decoded response limit with a 5 MiB default.
+- Moved ordinary responses to client-managed bounded preloading while preserving
+  explicit caller-managed streaming.
+- Closed declared, decoded, or failed oversized transports; released accepted
+  responses; and preserved bounded non-2xx response bodies.
+- Added real gzip and captured-response regressions, static contracts,
+  synchronized guidance, and completed-plan enforcement.
 
 ## Verification Completed
 
-Pending implementation and `make check` verification.
+- All 401 pinned offline tests passed, including 17 focused response-body-limit
+  cases and a real urllib3 gzip decoding case.
+- The repository and external-directory pinned `make check` passed against the
+  actual worktree, including source/wheel builds, isolated wheel import,
+  dependency consistency, and auditing with no known vulnerabilities.
+- Ten isolated hostile response-body-limit mutations were rejected across
+  configuration, validation, bounded reads, close/release behavior, urllib3
+  preloading, streaming, tests, guidance, and plan status.
+- No live Twilio request, credential, account data, or unbounded payload was
+  used.

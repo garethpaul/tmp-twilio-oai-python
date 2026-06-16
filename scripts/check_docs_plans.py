@@ -23,6 +23,7 @@ HEADER_PRECEDENCE_PLAN = DOCS_PLANS / "2026-06-14-operation-header-precedence.md
 CASE_INSENSITIVE_HEADER_PLAN = DOCS_PLANS / "2026-06-14-case-insensitive-header-precedence.md"
 AUTH_HEADER_CASE_PLAN = DOCS_PLANS / "2026-06-14-auth-header-case-precedence.md"
 RESPONSE_CHARSET_PLAN = DOCS_PLANS / "2026-06-15-response-charset-fallback.md"
+RESPONSE_BODY_LIMIT_PLAN = DOCS_PLANS / "2026-06-16-response-body-size-limit.md"
 ARTIFACT_CHECKER = ROOT / "scripts" / "check_package_artifact.py"
 REQUEST_HEADERS_TEST = ROOT / "test" / "test_rest_request_headers.py"
 AUTH_CONFIGURATION_TEST = ROOT / "test" / "test_auth_configuration.py"
@@ -66,6 +67,8 @@ def main():
         failures.append("docs/plans/2026-06-14-auth-header-case-precedence.md is missing")
     if not RESPONSE_CHARSET_PLAN.exists():
         failures.append("docs/plans/2026-06-15-response-charset-fallback.md is missing")
+    if not RESPONSE_BODY_LIMIT_PLAN.exists():
+        failures.append("docs/plans/2026-06-16-response-body-size-limit.md is missing")
     if not REQUEST_HEADERS_TEST.exists():
         failures.append("test/test_rest_request_headers.py is missing")
 
@@ -247,6 +250,21 @@ def main():
         failures.append("REST debug logging must not emit response bodies")
     if '"response received: status=%s bytes=%s"' not in rest:
         failures.append("REST debug logging must retain response status and size metadata")
+    for contract in (
+        "def _prepare_response_body_size_limit(value):",
+        "def _read_response_body(response, limit, request_method):",
+        "response.read(amt=remaining, decode_content=True)",
+        "response.close()",
+        "response.release_conn()",
+        "preload_content=False",
+        "if _preload_content:",
+    ):
+        if contract not in rest:
+            failures.append(f"response body limit source contract is missing: {contract}")
+    if "self.max_response_body_size = 5 * 1024 * 1024" not in configuration:
+        failures.append("Configuration must default preloaded responses to a 5 MiB limit")
+    if "configuration.max_response_body_size" not in rest:
+        failures.append("REST clients must validate the configured response body limit")
 
     timeout_tests = ROOT / "test" / "test_rest_request_timeout.py"
     if not timeout_tests.exists():
@@ -313,6 +331,37 @@ def main():
         ):
             if evidence not in charset_plan:
                 failures.append(f"{RESPONSE_CHARSET_PLAN.relative_to(ROOT)} must record verification evidence: {evidence}")
+
+    response_body_limit_tests = ROOT / "test" / "test_rest_response_body_limit.py"
+    if not response_body_limit_tests.exists():
+        failures.append("test/test_rest_response_body_limit.py is missing")
+    else:
+        response_body_limit_test_text = response_body_limit_tests.read_text(encoding="utf-8")
+        for contract in (
+            "test_configuration_defaults_to_five_mebibyte_response_limit",
+            "test_client_rejects_invalid_response_body_limits",
+            "test_preloaded_response_accepts_exact_limit_and_releases_connection",
+            "test_declared_oversize_response_closes_without_reading",
+            "test_head_response_ignores_representation_content_length",
+            "test_decoded_oversize_response_closes_without_returning_body",
+            "test_compressed_response_is_limited_by_decoded_size",
+            "test_compressed_content_length_does_not_override_decoded_limit",
+            "test_error_response_preserves_bounded_body_and_status_exception",
+            "test_streaming_response_remains_caller_managed",
+            "test_preload_failure_closes_response_and_preserves_cause",
+        ):
+            if contract not in response_body_limit_test_text:
+                failures.append(f"response body limit coverage is missing: {contract}")
+
+    if RESPONSE_BODY_LIMIT_PLAN.exists():
+        response_body_limit_plan = RESPONSE_BODY_LIMIT_PLAN.read_text(encoding="utf-8")
+        for evidence in (
+            "Status: Completed",
+            "repository and external-directory pinned `make check` passed",
+            "hostile response-body-limit mutations were rejected",
+        ):
+            if evidence not in response_body_limit_plan:
+                failures.append(f"{RESPONSE_BODY_LIMIT_PLAN.relative_to(ROOT)} must record verification evidence: {evidence}")
 
     required_files = [
         "pyproject.toml",
@@ -403,6 +452,8 @@ def main():
         failures.append("README must index case-insensitive header precedence evidence")
     if "docs/plans/2026-06-14-auth-header-case-precedence.md" not in (ROOT / "README.md").read_text(encoding="utf-8"):
         failures.append("README must index auth header case precedence evidence")
+    if "docs/plans/2026-06-16-response-body-size-limit.md" not in (ROOT / "README.md").read_text(encoding="utf-8"):
+        failures.append("README must index response body limit evidence")
 
     if not HEADER_PRECEDENCE_TEST.exists():
         failures.append("test/test_api_client_header_precedence.py is missing")
@@ -434,6 +485,8 @@ def main():
             failures.append(f"{relative_path} must document auth header case precedence")
         if "text responses use declared charsets with replacement decoding" not in (ROOT / relative_path).read_text(encoding="utf-8").lower():
             failures.append(f"{relative_path} must document response charset fallback")
+        if "preloaded responses enforce a configurable decoded body limit" not in (ROOT / relative_path).read_text(encoding="utf-8").lower():
+            failures.append(f"{relative_path} must document the preloaded response body limit")
 
     workflow = (ROOT / ".github" / "workflows" / "check.yml").read_text(encoding="utf-8")
     workflow_contracts = [

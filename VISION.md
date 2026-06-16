@@ -37,6 +37,8 @@ Priority:
 - Keep Twilio response payloads out of generated-client debug logs
 - Text responses use declared charsets with replacement decoding and fall back
   to UTF-8 replacement for unknown charsets
+- Preloaded responses enforce a configurable decoded body limit while explicit
+  streaming remains caller managed
 - Reject unsupported REST methods before invoking the urllib3 pool manager
 - Keep completed maintenance plans under `docs/plans`
 - Verify the built wheel, not only the source checkout, before publishing

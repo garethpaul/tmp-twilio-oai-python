@@ -13,12 +13,27 @@ class DummyHTTPResponse:
     def __init__(self, status, data):
         self.status = status
         self.data = data
+        self.read_offset = 0
 
     def getheaders(self):
         return {}
 
     def getheader(self, name, default=None):
         return default
+
+    def read(self, amt=None, decode_content=None):
+        if amt is None:
+            chunk = self.data[self.read_offset:]
+        else:
+            chunk = self.data[self.read_offset:self.read_offset + amt]
+        self.read_offset += len(chunk)
+        return chunk
+
+    def release_conn(self):
+        pass
+
+    def close(self):
+        pass
 
 
 class ResponsePoolManager:
