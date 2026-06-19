@@ -11,11 +11,11 @@
 
 import json
 import atexit
+from email.message import Message
 import mimetypes
 from multiprocessing.pool import ThreadPool
 import io
 import os
-import re
 import typing
 from urllib.parse import quote
 from urllib3.fields import RequestField
@@ -45,6 +45,14 @@ def decode_response_text(data, encoding):
         return data.decode(encoding, errors="replace")
     except LookupError:
         return data.decode("utf-8", errors="replace")
+
+
+def response_text_encoding(content_type):
+    if not content_type:
+        return "utf-8"
+    message = Message()
+    message["content-type"] = content_type
+    return message.get_content_charset() or "utf-8"
 
 
 class ApiClient(object):
@@ -241,10 +249,7 @@ class ApiClient(object):
             return return_data
 
         if response_type not in ["file", "bytes"]:
-            match = None
-            if content_type is not None:
-                match = re.search(r"charset=([a-zA-Z\-\d]+)[\s\;]?", content_type)
-            encoding = match.group(1) if match else "utf-8"
+            encoding = response_text_encoding(content_type)
             response_data.data = decode_response_text(response_data.data, encoding)
 
         # deserialize response data

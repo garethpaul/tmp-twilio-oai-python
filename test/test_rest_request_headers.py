@@ -1,4 +1,5 @@
 import pytest
+from urllib3.util.retry import Retry
 
 from openapi_client.configuration import Configuration
 from openapi_client.exceptions import ApiValueError
@@ -155,6 +156,76 @@ def test_duplicate_content_type_case_variants_fail_before_transport():
         )
 
     assert client.pool_manager.calls == []
+
+
+def test_duplicate_header_case_variants_fail_before_transport():
+    client = client_with_capturing_pool()
+
+    with pytest.raises(ApiValueError, match="multiple X-Request-ID"):
+        client.request(
+            "GET",
+            "https://api.twilio.com",
+            headers={
+                "X-Request-ID": "first",
+                "x-request-id": "second",
+            },
+        )
+
+    assert client.pool_manager.calls == []
+
+
+@pytest.mark.parametrize(
+    "headers",
+    [
+        {"X-Test\r\nX-Injected": "value"},
+        {"X-Test": "value\r\nX-Injected: yes"},
+        {"X-Test": "value\x00suffix"},
+    ],
+)
+def test_request_rejects_header_controls_before_transport(headers):
+    client = client_with_capturing_pool()
+
+    with pytest.raises(ApiValueError, match="header"):
+        client.request("GET", "https://api.twilio.com", headers=headers)
+
+    assert client.pool_manager.calls == []
+
+
+def test_request_rejects_url_userinfo_before_transport():
+    client = client_with_capturing_pool()
+
+    with pytest.raises(ApiValueError, match="userinfo"):
+        client.request("GET", "https://api.twilio.com@attacker.example/path")
+
+    assert client.pool_manager.calls == []
+
+
+def test_non_json_media_type_does_not_serialize_mapping_as_json():
+    client = client_with_capturing_pool()
+
+    with pytest.raises(ApiValueError, match="declared content type"):
+        client.request(
+            "POST",
+            "https://api.twilio.com",
+            headers={"Content-Type": "application/notjson"},
+            body={"message": "hello"},
+        )
+
+    assert client.pool_manager.calls == []
+
+
+def test_custom_redirect_policy_still_strips_sensitive_headers():
+    configuration = Configuration()
+    configuration.retries = Retry(remove_headers_on_redirect=frozenset())
+
+    client = RESTClientObject(configuration)
+
+    retries = client.pool_manager.connection_pool_kw["retries"]
+    assert {
+        "authorization",
+        "cookie",
+        "proxy-authorization",
+    }.issubset(retries.remove_headers_on_redirect)
 
 
 def test_write_request_appends_query_params_to_existing_query_string():

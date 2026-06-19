@@ -152,8 +152,10 @@ def test_basic_auth_header_allowed_for_local_http_host():
 @pytest.mark.parametrize(
     "request_host, expect_authorization",
     [
-        ("https://api.example.test", True),
-        ("http://localhost:8080", True),
+        ("https://api.twilio.com", True),
+        ("https://api.twilio.com:443", True),
+        ("https://api.example.test", False),
+        ("http://localhost:8080", False),
         ("http://api.example.test", False),
         ("ftp://localhost", False),
     ],
@@ -188,7 +190,7 @@ def test_basic_auth_uses_effective_request_host(
     assert ("Authorization" in captured["headers"]) is expect_authorization
 
 
-def test_https_override_can_authorize_when_default_host_is_disallowed():
+def test_https_override_cannot_authorize_when_configured_host_is_disallowed():
     configuration = Configuration(
         host="http://api.example.test",
         username="AC123",
@@ -211,9 +213,8 @@ def test_https_override_can_authorize_when_default_host_is_disallowed():
         _return_http_data_only=True,
     )
 
-    expected = base64.b64encode(b"AC123:secret").decode("ascii")
     assert captured["url"] == "https://api.example.test/2010-04-01/Accounts.json"
-    assert captured["headers"]["Authorization"] == "Basic %s" % expected
+    assert "Authorization" not in captured["headers"]
 
 
 def test_basic_auth_replaces_case_insensitive_operation_authorization():

@@ -115,8 +115,10 @@ def main():
         failures.append("openapi_client/configuration.py must guard Basic auth by host scheme")
     if "effective_host = self.host if host is None else host" not in configuration:
         failures.append("Basic auth host checks must honor an explicit effective host")
-    if 'parsed_host.scheme == "http"' not in configuration:
+    if 'scheme == "http"' not in configuration:
         failures.append("local Basic auth exceptions must be limited to plain HTTP")
+    if "effective_origin != configured_origin" not in configuration:
+        failures.append("Basic auth must remain bound to the configured origin")
     if "LOCAL_BASIC_AUTH_HOSTS" not in configuration:
         failures.append("openapi_client/configuration.py must allow explicit local Basic auth hosts")
     if "if basic_auth_token:" not in configuration:
@@ -169,11 +171,12 @@ def main():
         auth_test = AUTH_CONFIGURATION_TEST.read_text(encoding="utf-8")
         for contract in (
             "test_basic_auth_uses_effective_request_host",
-            "test_https_override_can_authorize_when_default_host_is_disallowed",
+            "test_https_override_cannot_authorize_when_configured_host_is_disallowed",
             "test_basic_auth_replaces_case_insensitive_operation_authorization",
             "test_cookie_auth_replaces_case_insensitive_existing_cookie",
-            '("https://api.example.test", True)',
-            '("http://localhost:8080", True)',
+            '("https://api.twilio.com", True)',
+            '("https://api.example.test", False)',
+            '("http://localhost:8080", False)',
             '("http://api.example.test", False)',
             '("ftp://localhost", False)',
             'assert captured["url"] == request_host +',

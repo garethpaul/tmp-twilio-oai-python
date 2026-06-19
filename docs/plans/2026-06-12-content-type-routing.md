@@ -20,6 +20,8 @@ before transport dispatch, while preserving caller-header immutability.
 - R1. Resolve exactly one Content-Type header case-insensitively and preserve
   its caller-provided spelling in the copied transport headers.
 - R2. Add the JSON default only when no case-insensitive Content-Type exists.
+- R3. Treat only `application/json` and structured `+json` media types as JSON;
+  names that merely contain the substring `json` must not trigger serialization.
 - R3. Route JSON, URL-encoded form, and multipart requests by normalized base
   media type so parameters do not change encoder selection.
 - R4. Remove the actual caller spelling for multipart so urllib3 can generate

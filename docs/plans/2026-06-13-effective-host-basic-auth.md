@@ -14,20 +14,23 @@ the existing host-scheme guard and receive Twilio credentials.
 
 - Evaluate Basic auth eligibility against the effective request host, including
   operation-level `_host` overrides.
-- Preserve Basic auth for the configured HTTPS Twilio host, HTTPS overrides,
-  and explicitly allowed local HTTP development hosts.
+- Preserve Basic auth only when the effective request origin matches the
+  configured HTTPS Twilio origin, including normalized default ports.
+- Preserve explicitly allowed local HTTP development hosts only when they are
+  also the configured origin.
 - Suppress Basic auth for non-local plain HTTP overrides before transport.
 - Preserve existing direct `update_params_for_auth()` callers by defaulting to
   the configured host when no effective host is supplied.
-- Add no-network tests that inspect dispatched headers for HTTPS, local HTTP,
-  and non-local HTTP override cases.
+- Add no-network tests that inspect dispatched headers for same-origin HTTPS,
+  cross-origin HTTPS, local HTTP, and non-local HTTP override cases.
 - Extend the dependency-free source contract and security documentation.
 
 ## Non-Goals
 
 - Do not send requests to Twilio or any external host.
-- Do not change credential formats, endpoint generation, redirects, TLS
-  verification, or the local-host allowlist.
+- Do not change credential formats, endpoint generation, TLS verification, or
+  the local-host allowlist. Redirects must independently strip sensitive
+  headers.
 - Do not regenerate the full OpenAPI client.
 
 ## Implementation

@@ -1,5 +1,17 @@
 # Security Policy
 
+## Generated HTTP client boundaries
+
+Basic auth is emitted only when the effective request origin matches the
+configured origin. Request URL userinfo and header control characters are
+rejected before dispatch, and sensitive headers remain stripped on cross-host
+redirects even with caller-supplied retry policies. Preloaded response bodies
+are bounded; successful explicit streaming is caller-managed and intentionally
+outside that limit.
+
+These controls are verified with offline fake transports. They have not been
+validated with live Twilio credentials or production Twilio traffic.
+
 ## Supported Versions
 
 The supported security scope for `tmp-twilio-oai-python` is the current default branch, `master`. Older commits, tags, branches, forks, demos, and generated artifacts are not actively supported unless the repository explicitly marks them as maintained.

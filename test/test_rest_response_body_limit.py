@@ -207,6 +207,22 @@ def test_streaming_response_remains_caller_managed():
     assert transport_response.closed is False
 
 
+def test_streaming_error_response_is_closed_before_exception():
+    transport_response = BoundedHTTPResponse(data=b"denied", status=401)
+    client = client_with_response(transport_response)
+
+    with pytest.raises(UnauthorizedException):
+        client.request(
+            "GET",
+            "https://api.twilio.com",
+            _preload_content=False,
+        )
+
+    assert transport_response.read_calls == []
+    assert transport_response.released is False
+    assert transport_response.closed is True
+
+
 def test_preload_failure_closes_response_and_preserves_cause():
     transport_error = urllib3.exceptions.ProtocolError("truncated response")
     transport_response = BoundedHTTPResponse(read_error=transport_error)

@@ -1,3 +1,5 @@
+import pytest
+
 from openapi_client.api_client import ApiClient
 from openapi_client.configuration import Configuration
 
@@ -34,6 +36,17 @@ def decoded_response(data, content_type):
 
 def test_honors_valid_declared_response_charset():
     assert decoded_response(b"caf\xe9", "text/plain; charset=iso-8859-1") == "café"
+
+
+@pytest.mark.parametrize(
+    "content_type",
+    [
+        'text/plain; charset="iso-8859-1"',
+        "text/plain; charset=iso_8859-1",
+    ],
+)
+def test_honors_quoted_and_underscore_response_charsets(content_type):
+    assert decoded_response(b"caf\xe9", content_type) == "café"
 
 
 def test_replaces_malformed_bytes_for_declared_charset():

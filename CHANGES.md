@@ -1,5 +1,14 @@
 # Changes
 
+## 2026-06-19
+
+- Bound generated Basic auth to the configured request origin and enforced
+  sensitive-header stripping for cross-host redirects.
+- Rejected request URL userinfo and header control characters before transport,
+  and limited JSON serialization to standard JSON media types.
+- Closed non-preloaded error responses without reading unbounded bodies and
+  expanded valid response charset parsing.
+
 ## 2026-06-16
 
 - Preloaded responses enforce a configurable decoded body limit, defaulting to
