@@ -25,6 +25,15 @@ from openapi_client.exceptions import ApiException, UnauthorizedException, Forbi
 logger = logging.getLogger(__name__)
 
 
+_RESPONSE_DATA_UNSET = object()
+_HEADER_NAME = re.compile(r"^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$")
+_SENSITIVE_REDIRECT_HEADERS = {
+    "authorization",
+    "cookie",
+    "proxy-authorization",
+}
+
+
 def _prepare_request_timeout(value):
     if value is None:
         return None
@@ -61,6 +70,124 @@ def _prepare_request_timeout(value):
         raise ApiValueError("Request timeout value is invalid.") from error
 
 
+def _prepare_response_body_size_limit(value):
+    if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+        raise ApiValueError(
+            "Response body size limit must be a positive integer."
+        )
+    return value
+
+
+def _prepare_retries(value):
+    if isinstance(value, urllib3.util.Retry):
+        remove_headers = {
+            header.lower() for header in value.remove_headers_on_redirect
+        }
+        remove_headers.update(_SENSITIVE_REDIRECT_HEADERS)
+        return value.new(remove_headers_on_redirect=remove_headers)
+    return value
+
+
+def _validate_request_url(url):
+    if (not isinstance(url, str) or
+            any(ord(char) <= 31 or ord(char) == 127 for char in url)):
+        raise ApiValueError("Request URL must be a control-free string.")
+    try:
+        parsed = urlsplit(url)
+        parsed.port
+    except ValueError as error:
+        raise ApiValueError("Request URL is invalid.") from error
+    if parsed.scheme not in ("http", "https") or not parsed.hostname:
+        raise ApiValueError("Request URL must use HTTP or HTTPS and include a host.")
+    if parsed.username is not None or parsed.password is not None:
+        raise ApiValueError("Request URL must not contain userinfo.")
+
+
+def _validate_request_headers(headers):
+    seen_names = {}
+    for name, value in headers.items():
+        if not isinstance(name, str) or not _HEADER_NAME.fullmatch(name):
+            raise ApiValueError("Request header name is invalid.")
+        normalized_name = name.lower()
+        if normalized_name in seen_names:
+            raise ApiValueError(
+                "Request headers contain multiple {0} values.".format(
+                    seen_names[normalized_name]
+                )
+            )
+        seen_names[normalized_name] = name
+        if isinstance(value, bytes):
+            invalid = any(byte < 32 and byte != 9 or byte == 127 for byte in value)
+        elif isinstance(value, str):
+            invalid = any(
+                ord(char) < 32 and char != "\t" or ord(char) == 127
+                for char in value
+            )
+        else:
+            invalid = False
+        if invalid:
+            raise ApiValueError("Request header value contains control characters.")
+
+
+def _is_json_media_type(media_type):
+    return media_type == "application/json" or media_type.endswith("+json")
+
+
+def _read_response_body(response, limit, request_method):
+    response_headers = getattr(response, "headers", None)
+    if response_headers is None:
+        content_length = response.getheader("Content-Length")
+        content_encoding = response.getheader("Content-Encoding")
+    else:
+        content_length = response_headers.get("Content-Length")
+        content_encoding = response_headers.get("Content-Encoding")
+    try:
+        declared_size = int(content_length)
+    except (TypeError, ValueError):
+        declared_size = None
+
+    encoded_body = (
+        isinstance(content_encoding, str) and
+        content_encoding.strip().lower() not in ("", "identity")
+    )
+    if (request_method != "HEAD" and not encoded_body and
+            declared_size is not None and declared_size > limit):
+        response.close()
+        raise ApiException(
+            status=response.status,
+            reason=(
+                "Response body exceeds the configured "
+                "{0}-byte limit.".format(limit)
+            ),
+        )
+
+    try:
+        data = bytearray()
+        remaining = limit + 1
+        while remaining:
+            chunk = response.read(amt=remaining, decode_content=True)
+            if not chunk:
+                break
+            data.extend(chunk)
+            remaining -= len(chunk)
+    except Exception:
+        response.close()
+        raise
+
+    if len(data) > limit:
+        response.close()
+        raise ApiException(
+            status=response.status,
+            reason=(
+                "Response body exceeds the configured "
+                "{0}-byte limit.".format(limit)
+            ),
+        )
+
+    response.release_conn()
+    return bytes(data)
+
+
 def _append_query_params(url, query_params):
     if not query_params:
         return url
@@ -77,13 +204,37 @@ def _append_query_params(url, query_params):
     )
 
 
+def _resolve_content_type(headers):
+    content_type_headers = [
+        key for key in headers
+        if isinstance(key, str) and key.lower() == 'content-type'
+    ]
+    if len(content_type_headers) > 1:
+        raise ApiValueError("Request headers contain multiple Content-Type values.")
+
+    if not content_type_headers:
+        headers['Content-Type'] = 'application/json'
+        content_type_header = 'Content-Type'
+    else:
+        content_type_header = content_type_headers[0]
+
+    value = headers[content_type_header]
+    if not isinstance(value, str) or not value.strip():
+        raise ApiValueError("Content-Type header must be a non-empty string.")
+
+    media_type = value.split(';', 1)[0].strip().lower()
+    if not media_type:
+        raise ApiValueError("Content-Type header must include a media type.")
+    return content_type_header, media_type
+
+
 class RESTResponse(io.IOBase):
 
-    def __init__(self, resp):
+    def __init__(self, resp, data=_RESPONSE_DATA_UNSET):
         self.urllib3_response = resp
         self.status = resp.status
         self.reason = resp.reason
-        self.data = resp.data
+        self.data = resp.data if data is _RESPONSE_DATA_UNSET else data
 
     def getheaders(self):
         """Returns a dictionary of the response headers."""
@@ -103,6 +254,10 @@ class RESTClientObject(object):
         # maxsize is the number of requests to host that are allowed in parallel  # noqa: E501
         # Custom SSL certificates and client certificates: http://urllib3.readthedocs.io/en/latest/advanced-usage.html  # noqa: E501
 
+        self.max_response_body_size = _prepare_response_body_size_limit(
+            configuration.max_response_body_size
+        )
+
         # cert_reqs
         if configuration.verify_ssl:
             cert_reqs = ssl.CERT_REQUIRED
@@ -114,7 +269,9 @@ class RESTClientObject(object):
             addition_pool_args['assert_hostname'] = configuration.assert_hostname  # noqa: E501
 
         if configuration.retries is not None:
-            addition_pool_args['retries'] = configuration.retries
+            addition_pool_args['retries'] = _prepare_retries(
+                configuration.retries
+            )
 
         if configuration.socket_options is not None:
             addition_pool_args['socket_options'] = configuration.socket_options
@@ -187,43 +344,45 @@ class RESTClientObject(object):
         post_params = post_params or {}
         headers = dict(headers or {})
 
+        _validate_request_url(url)
+        _validate_request_headers(headers)
+
         timeout = _prepare_request_timeout(_request_timeout)
 
-        if 'Content-Type' not in headers:
-            headers['Content-Type'] = 'application/json'
+        content_type_header, content_type = _resolve_content_type(headers)
 
         try:
             # For `POST`, `PUT`, `PATCH`, `OPTIONS`, `DELETE`
             if method in ['POST', 'PUT', 'PATCH', 'OPTIONS', 'DELETE']:
                 url = _append_query_params(url, query_params)
-                if re.search('json', headers['Content-Type'], re.IGNORECASE):
+                if _is_json_media_type(content_type):
                     request_body = None
                     if body is not None:
                         request_body = json.dumps(body)
                     r = self.pool_manager.request(
                         method, url,
                         body=request_body,
-                        preload_content=_preload_content,
+                        preload_content=False,
                         timeout=timeout,
                         headers=headers)
-                elif headers['Content-Type'] == 'application/x-www-form-urlencoded':  # noqa: E501
+                elif content_type == 'application/x-www-form-urlencoded':
                     r = self.pool_manager.request(
                         method, url,
                         fields=post_params,
                         encode_multipart=False,
-                        preload_content=_preload_content,
+                        preload_content=False,
                         timeout=timeout,
                         headers=headers)
-                elif headers['Content-Type'] == 'multipart/form-data':
+                elif content_type == 'multipart/form-data':
                     # must del headers['Content-Type'], or the correct
                     # Content-Type which generated by urllib3 will be
                     # overwritten.
-                    del headers['Content-Type']
+                    del headers[content_type_header]
                     r = self.pool_manager.request(
                         method, url,
                         fields=post_params,
                         encode_multipart=True,
-                        preload_content=_preload_content,
+                        preload_content=False,
                         timeout=timeout,
                         headers=headers)
                 # Pass a `string` parameter directly in the body to support
@@ -234,7 +393,7 @@ class RESTClientObject(object):
                     r = self.pool_manager.request(
                         method, url,
                         body=request_body,
-                        preload_content=_preload_content,
+                        preload_content=False,
                         timeout=timeout,
                         headers=headers)
                 else:
@@ -242,12 +401,12 @@ class RESTClientObject(object):
                     msg = """Cannot prepare a request message for provided
                              arguments. Please check that your arguments match
                              declared content type."""
-                    raise ApiException(status=0, reason=msg)
+                    raise ApiValueError(msg)
             # For `GET`, `HEAD`
             else:
                 r = self.pool_manager.request(method, url,
                                               fields=query_params,
-                                              preload_content=_preload_content,
+                                              preload_content=False,
                                               timeout=timeout,
                                               headers=headers)
         except urllib3.exceptions.SSLError as e:
@@ -258,12 +417,28 @@ class RESTClientObject(object):
             raise ApiException(status=0, reason=msg) from e
 
         if _preload_content:
-            r = RESTResponse(r)
+            try:
+                response_data = _read_response_body(
+                    r, self.max_response_body_size, method
+                )
+            except urllib3.exceptions.HTTPError as e:
+                msg = "{0}\n{1}".format(type(e).__name__, str(e))
+                raise ApiException(status=0, reason=msg) from e
 
-            # log response body
-            logger.debug("response body: %s", r.data)
+            r = RESTResponse(r, response_data)
+
+            response_size = len(r.data) if r.data is not None else 0
+            logger.debug(
+                "response received: status=%s bytes=%s",
+                r.status,
+                response_size,
+            )
 
         if not 200 <= r.status <= 299:
+            if not _preload_content:
+                streaming_response = r
+                r = RESTResponse(streaming_response, None)
+                streaming_response.close()
             if r.status == 401:
                 raise UnauthorizedException(http_resp=r)
 

@@ -11,11 +11,11 @@
 
 import json
 import atexit
+from email.message import Message
 import mimetypes
 from multiprocessing.pool import ThreadPool
 import io
 import os
-import re
 import typing
 from urllib.parse import quote
 from urllib3.fields import RequestField
@@ -38,6 +38,21 @@ from openapi_client.model_utils import (
     none_type,
     validate_and_convert_types
 )
+
+
+def decode_response_text(data, encoding):
+    try:
+        return data.decode(encoding, errors="replace")
+    except LookupError:
+        return data.decode("utf-8", errors="replace")
+
+
+def response_text_encoding(content_type):
+    if not content_type:
+        return "utf-8"
+    message = Message()
+    message["content-type"] = content_type
+    return message.get_content_charset() or "utf-8"
 
 
 class ApiClient(object):
@@ -115,6 +130,15 @@ class ApiClient(object):
     def set_default_header(self, header_name, header_value):
         self.default_headers[header_name] = header_value
 
+    @staticmethod
+    def _set_header_case_insensitively(headers, name, value):
+        normalized_name = name.lower()
+        for existing_name in list(headers):
+            if (isinstance(existing_name, str) and
+                    existing_name.lower() == normalized_name):
+                del headers[existing_name]
+        headers[name] = value
+
     def __call_api(
         self,
         resource_path: str,
@@ -138,9 +162,19 @@ class ApiClient(object):
         config = self.configuration
 
         # header parameters
-        header_params = header_params or {}
-        header_params.update(self.default_headers)
+        operation_headers = header_params or {}
+        header_params = {}
+        header_names = {}
+        for source_headers in (self.default_headers, operation_headers):
+            for name, value in source_headers.items():
+                normalized_name = name.lower() if isinstance(name, str) else name
+                if normalized_name in header_names:
+                    del header_params[header_names[normalized_name]]
+                header_params[name] = value
+                header_names[normalized_name] = name
         if self.cookie:
+            if 'cookie' in header_names:
+                del header_params[header_names['cookie']]
             header_params['Cookie'] = self.cookie
         if header_params:
             header_params = self.sanitize_for_serialization(header_params)
@@ -180,18 +214,17 @@ class ApiClient(object):
         if body:
             body = self.sanitize_for_serialization(body)
 
+        request_host = self.configuration.host if _host is None else _host
+
         # auth setting
         if auth_settings and query_params is None:
             query_params = []
         self.update_params_for_auth(header_params, query_params,
-                                    auth_settings, resource_path, method, body)
+                                    auth_settings, resource_path, method, body,
+                                    request_host=request_host)
 
         # request url
-        if _host is None:
-            url = self.configuration.host + resource_path
-        else:
-            # use server/host defined in path or operation instead
-            url = _host + resource_path
+        url = request_host + resource_path
 
         try:
             # perform request and return response
@@ -216,11 +249,8 @@ class ApiClient(object):
             return return_data
 
         if response_type not in ["file", "bytes"]:
-            match = None
-            if content_type is not None:
-                match = re.search(r"charset=([a-zA-Z\-\d]+)[\s\;]?", content_type)
-            encoding = match.group(1) if match else "utf-8"
-            response_data.data = response_data.data.decode(encoding)
+            encoding = response_text_encoding(content_type)
+            response_data.data = decode_response_text(response_data.data, encoding)
 
         # deserialize response data
         if response_type:
@@ -585,7 +615,8 @@ class ApiClient(object):
             return content_types[0]
 
     def update_params_for_auth(self, headers, querys, auth_settings,
-                               resource_path, method, body):
+                               resource_path, method, body,
+                               request_host=None):
         """Updates header and query params based on authentication setting.
 
         :param headers: Header parameters dict to be updated.
@@ -595,6 +626,7 @@ class ApiClient(object):
         :param method: A string representation of the HTTP request method.
         :param body: A object representing the body of the HTTP request.
             The object type is the return value of _encoder.default().
+        :param request_host: Effective host selected for this request.
         """
         if not auth_settings:
             return
@@ -602,11 +634,22 @@ class ApiClient(object):
         for auth in auth_settings:
             auth_setting = self.configuration.auth_settings().get(auth)
             if auth_setting:
+                if (auth_setting['type'] == 'basic' and
+                        not self.configuration.host_allows_basic_auth(
+                            request_host
+                        )):
+                    continue
                 if auth_setting['in'] == 'cookie':
-                    headers['Cookie'] = auth_setting['value']
+                    self._set_header_case_insensitively(
+                        headers, 'Cookie', auth_setting['value']
+                    )
                 elif auth_setting['in'] == 'header':
                     if auth_setting['type'] != 'http-signature':
-                        headers[auth_setting['key']] = auth_setting['value']
+                        self._set_header_case_insensitively(
+                            headers,
+                            auth_setting['key'],
+                            auth_setting['value'],
+                        )
                 elif auth_setting['in'] == 'query':
                     querys.append((auth_setting['key'], auth_setting['value']))
                 else:

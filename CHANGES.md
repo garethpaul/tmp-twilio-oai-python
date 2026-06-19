@@ -1,7 +1,45 @@
 # Changes
 
+## 2026-06-19
+
+- Bound generated Basic auth to the configured request origin and enforced
+  sensitive-header stripping for cross-host redirects.
+- Rejected request URL userinfo and header control characters before transport,
+  and limited JSON serialization to standard JSON media types.
+- Closed non-preloaded error responses without reading unbounded bodies and
+  expanded valid response charset parsing.
+
+## 2026-06-16
+
+- Preloaded responses enforce a configurable decoded body limit, defaulting to
+  5 MiB, and close oversized transports without changing explicit streaming.
+
+## 2026-06-15
+
+- Text responses use declared charsets with replacement decoding and fall back
+  to UTF-8 replacement for unknown charsets.
+
+## 2026-06-14
+
+- Added auth header case precedence so generated credentials replace
+  HTTP-equivalent operation header spellings before transport.
+- Added case-insensitive header precedence for HTTP-equivalent operation names.
+- Fixed operation header precedence so client defaults fill missing values
+  without overwriting or mutating endpoint-specific request headers.
+
+## 2026-06-13
+
+- Made the dispatch-time host the single Basic auth authorization decision so
+  trusted overrides are not suppressed by an unrelated default host.
+- Applied the Basic auth scheme guard to operation-level request host
+  overrides so non-local plain HTTP destinations cannot receive credentials.
+
 ## 2026-06-12
 
+- Made REST Content-Type resolution case-insensitive and parameter-aware,
+  rejected conflicting case variants, and preserved multipart boundary setup.
+- Replaced raw REST response-body debug logging with status and byte-count
+  metadata, with no-network privacy regressions for success and error payloads.
 - Rejected malformed REST request timeout values before invoking urllib3 so an
   intended bounded request cannot silently fall back to transport defaults.
 - Added no-network coverage for default, total, connect/read, non-positive,

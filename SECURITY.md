@@ -1,5 +1,17 @@
 # Security Policy
 
+## Generated HTTP client boundaries
+
+Basic auth is emitted only when the effective request origin matches the
+configured origin. Request URL userinfo and header control characters are
+rejected before dispatch, and sensitive headers remain stripped on cross-host
+redirects even with caller-supplied retry policies. Preloaded response bodies
+are bounded; successful explicit streaming is caller-managed and intentionally
+outside that limit.
+
+These controls are verified with offline fake transports. They have not been
+validated with live Twilio credentials or production Twilio traffic.
+
 ## Supported Versions
 
 The supported security scope for `tmp-twilio-oai-python` is the current default branch, `master`. Older commits, tags, branches, forks, demos, and generated artifacts are not actively supported unless the repository explicitly marks them as maintained.
@@ -41,6 +53,25 @@ Helpful reports include:
   original urllib3 cause remains available to trusted callers for diagnosis.
 - Malformed timeout values fail before transport dispatch so invalid bounded
   request configuration cannot silently become an unbounded/default request.
+- REST debug diagnostics record response status and byte count without copying
+  Twilio success or error payloads into logs.
+- Text responses use declared charsets with replacement decoding and fall back
+  to UTF-8 replacement for unknown charsets.
+- Preloaded responses enforce a configurable decoded body limit so compressed
+  or unexpectedly large payloads cannot be accumulated without a fixed bound;
+  caller-managed streaming remains available for intentional large transfers.
+- REST request routing rejects conflicting Content-Type case variants and uses
+  the normalized base media type before selecting an encoder.
+- Basic auth eligibility is evaluated against the effective request host, so
+  operation-level overrides cannot route credentials to non-local plain HTTP.
+- Credential settings are materialized without default-host prefiltering; the
+  dispatch-time host remains the single Basic auth authorization boundary.
+- Operation header precedence prevents global defaults from replacing
+  endpoint-specific request metadata such as `Content-Type`.
+- Case-insensitive header precedence prevents duplicate authentication or
+  content metadata under differently cased HTTP names.
+- Auth header case precedence removes differently cased operation credentials
+  before generated authentication is inserted at the dispatch boundary.
 
 ## Service and API Notes
 

@@ -58,19 +58,33 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 
 ## Testing and Verification
 
+The deep-review transport hardening evidence is recorded in
+[`docs/plans/2026-06-19-deep-review-transport-hardening.md`](docs/plans/2026-06-19-deep-review-transport-hardening.md).
+It uses hostile no-network transports and does not make live Twilio requests.
+
 - `make check` runs Python syntax checks, the generated pytest suite, package
   source/wheel builds, an isolated install/import smoke test of the built
   wheel, dependency consistency checks, and a security audit of the declared
   runtime dependency graph, including transitive dependencies. Ambient
   `PYTHONPATH` entries are excluded from dependency verification. The suite has
-  343 offline tests.
+  413 offline tests.
 - The pytest suite includes no-network checks for default host configuration
   and runtime-only, trimmed, non-empty Basic auth headers. It also covers API
   exception body handling so client errors are not masked by response decoding,
   and query auth parameter handling for requests with no preexisting query
   list. Basic auth tests also ensure credentials are not attached to non-local
-  plain HTTP hosts, and REST request tests ensure caller-provided header
-  dictionaries are not mutated while defaults are prepared. REST request tests
+  plain HTTP hosts, including operation-level host overrides. The dispatch-time
+  host must match the configured origin before Basic auth is attached, and REST request tests
+  ensure caller-provided header dictionaries are not mutated while defaults
+  are prepared. Operation header precedence keeps client defaults as
+  fallbacks without replacing endpoint-specific metadata on exact-name
+  conflicts. Case-insensitive header precedence also removes differently cased
+  defaults when an operation supplies the HTTP-equivalent name. Auth header case precedence
+  ensures generated credentials remain the sole final winner even when an
+  operation used different casing. Content-Type
+  routing is case-insensitive, accepts media-type parameters only for standard
+  JSON media types, and rejects ambiguous duplicate spellings before dispatch.
+  REST request tests
   also ensure write methods append query parameters to existing query strings
   with `&`, preserve repeated query parameter values, and reject unsupported
   HTTP methods before invoking urllib3.
@@ -79,6 +93,14 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 - REST request timeout validation accepts positive numeric totals or two-item
   connect/read tuples containing positive numbers or `None`; malformed,
   non-positive, boolean, and non-finite values fail before network work.
+- REST debug logging records only response status and byte count; response and
+  error bodies remain available to callers without being copied into logs.
+- Text responses use declared charsets with replacement decoding and fall back
+  to UTF-8 replacement for unknown charsets.
+- Preloaded responses enforce a configurable decoded body limit through
+  `Configuration.max_response_body_size`, defaulting to 5 MiB; oversized
+  responses are closed while explicit successful streaming stays caller
+  managed. Streaming error responses are closed without reading their bodies.
 - `make check` also requires completed canonical plans under `docs/plans`.
 - GitHub Actions runs the same gate on Python 3.10, 3.12, and 3.14 with
   read-only permissions, a fixed Ubuntu 24.04 image, bounded jobs, concurrency
@@ -115,6 +137,10 @@ When the required SDK or runtime is unavailable, use static checks and source re
   guard.
 - See `docs/plans/2026-06-09-basic-auth-host-scheme.md` for the Basic auth
   host-scheme guard.
+- See `docs/plans/2026-06-13-effective-host-basic-auth.md` for the
+  operation-level host override credential guard.
+- See `docs/plans/2026-06-13-effective-host-auth-materialization.md` for the
+  dispatch-time host authorization boundary.
 - See `docs/plans/2026-06-09-api-exception-body.md` for the API exception body
   preservation guard.
 - See `docs/plans/2026-06-09-query-auth-parameters.md` for the query auth
@@ -131,6 +157,20 @@ When the required SDK or runtime is unavailable, use static checks and source re
   transport failures and exception chaining.
 - See `docs/plans/2026-06-12-rest-timeout-validation.md` for request timeout
   validation before urllib3 dispatch.
+- See `docs/plans/2026-06-12-rest-response-logging.md` for metadata-only REST
+  response diagnostics and payload privacy coverage.
+- See `docs/plans/2026-06-12-content-type-routing.md` for case-insensitive,
+  parameter-aware request encoder selection.
+- See `docs/plans/2026-06-14-make-root-cleanup-protection.md` for authoritative
+  repository-root and package-cleanup selection across all Make aliases.
+- See `docs/plans/2026-06-14-operation-header-precedence.md` for request-specific
+  header precedence at the API dispatch boundary.
+- See `docs/plans/2026-06-14-case-insensitive-header-precedence.md` for
+  HTTP-equivalent header conflict handling.
+- See `docs/plans/2026-06-14-auth-header-case-precedence.md` for generated
+  credential precedence over differently cased operation headers.
+- See `docs/plans/2026-06-16-response-body-size-limit.md` for bounded decoded
+  response preloading and transport cleanup coverage.
 
 ## Contributing
 

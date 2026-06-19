@@ -1,4 +1,5 @@
 import pytest
+from urllib3.util.retry import Retry
 
 from openapi_client.configuration import Configuration
 from openapi_client.exceptions import ApiValueError
@@ -10,11 +11,28 @@ class DummyHTTPResponse:
     reason = "OK"
     data = b""
 
+    def __init__(self):
+        self.read_offset = 0
+
     def getheaders(self):
         return {}
 
     def getheader(self, name, default=None):
         return default
+
+    def read(self, amt=None, decode_content=None):
+        if amt is None:
+            chunk = self.data[self.read_offset:]
+        else:
+            chunk = self.data[self.read_offset:self.read_offset + amt]
+        self.read_offset += len(chunk)
+        return chunk
+
+    def release_conn(self):
+        pass
+
+    def close(self):
+        pass
 
 
 class CapturingPoolManager:
@@ -27,6 +45,9 @@ class CapturingPoolManager:
                 "method": method,
                 "url": url,
                 "headers": dict(kwargs.get("headers") or {}),
+                "body": kwargs.get("body"),
+                "fields": kwargs.get("fields"),
+                "encode_multipart": kwargs.get("encode_multipart"),
             }
         )
         return DummyHTTPResponse()
@@ -64,6 +85,147 @@ def test_request_does_not_mutate_headers_for_multipart_uploads():
 
     assert headers == {"Content-Type": "multipart/form-data"}
     assert "Content-Type" not in client.pool_manager.calls[0]["headers"]
+
+
+def test_parameterized_json_content_type_uses_json_body_without_duplicate_header():
+    client = client_with_capturing_pool()
+    headers = {"content-type": "Application/Problem+JSON; charset=utf-8"}
+
+    client.request(
+        "POST",
+        "https://api.twilio.com",
+        headers=headers,
+        body={"message": "hello"},
+    )
+
+    call = client.pool_manager.calls[0]
+    assert headers == {"content-type": "Application/Problem+JSON; charset=utf-8"}
+    assert call["headers"] == headers
+    assert call["body"] == '{"message": "hello"}'
+
+
+def test_lowercase_parameterized_form_content_type_uses_form_fields():
+    client = client_with_capturing_pool()
+    headers = {
+        "content-type": "Application/X-WWW-Form-Urlencoded; charset=utf-8"
+    }
+
+    client.request(
+        "POST",
+        "https://api.twilio.com",
+        headers=headers,
+        post_params=[("Body", "hello")],
+    )
+
+    call = client.pool_manager.calls[0]
+    assert call["headers"] == headers
+    assert call["fields"] == [("Body", "hello")]
+    assert call["encode_multipart"] is False
+
+
+def test_lowercase_parameterized_multipart_header_is_removed_from_copy():
+    client = client_with_capturing_pool()
+    headers = {"content-type": "Multipart/Form-Data; boundary=caller-value"}
+
+    client.request(
+        "POST",
+        "https://api.twilio.com",
+        headers=headers,
+        post_params=[("media", "body")],
+    )
+
+    call = client.pool_manager.calls[0]
+    assert headers == {"content-type": "Multipart/Form-Data; boundary=caller-value"}
+    assert call["headers"] == {}
+    assert call["fields"] == [("media", "body")]
+    assert call["encode_multipart"] is True
+
+
+def test_duplicate_content_type_case_variants_fail_before_transport():
+    client = client_with_capturing_pool()
+
+    with pytest.raises(ApiValueError, match="multiple Content-Type"):
+        client.request(
+            "POST",
+            "https://api.twilio.com",
+            headers={
+                "Content-Type": "application/json",
+                "content-type": "application/x-www-form-urlencoded",
+            },
+            body={"message": "hello"},
+        )
+
+    assert client.pool_manager.calls == []
+
+
+def test_duplicate_header_case_variants_fail_before_transport():
+    client = client_with_capturing_pool()
+
+    with pytest.raises(ApiValueError, match="multiple X-Request-ID"):
+        client.request(
+            "GET",
+            "https://api.twilio.com",
+            headers={
+                "X-Request-ID": "first",
+                "x-request-id": "second",
+            },
+        )
+
+    assert client.pool_manager.calls == []
+
+
+@pytest.mark.parametrize(
+    "headers",
+    [
+        {"X-Test\r\nX-Injected": "value"},
+        {"X-Test": "value\r\nX-Injected: yes"},
+        {"X-Test": "value\x00suffix"},
+    ],
+)
+def test_request_rejects_header_controls_before_transport(headers):
+    client = client_with_capturing_pool()
+
+    with pytest.raises(ApiValueError, match="header"):
+        client.request("GET", "https://api.twilio.com", headers=headers)
+
+    assert client.pool_manager.calls == []
+
+
+def test_request_rejects_url_userinfo_before_transport():
+    client = client_with_capturing_pool()
+
+    with pytest.raises(ApiValueError, match="userinfo"):
+        client.request("GET", "https://api.twilio.com@attacker.example/path")
+
+    assert client.pool_manager.calls == []
+
+
+def test_non_json_media_type_does_not_serialize_mapping_as_json():
+    client = client_with_capturing_pool()
+
+    with pytest.raises(ApiValueError, match="declared content type"):
+        client.request(
+            "POST",
+            "https://api.twilio.com",
+            headers={"Content-Type": "application/notjson"},
+            body={"message": "hello"},
+        )
+
+    assert client.pool_manager.calls == []
+
+
+def test_custom_redirect_policy_still_strips_sensitive_headers():
+    configuration = Configuration()
+    configuration.retries = Retry(remove_headers_on_redirect=frozenset())
+
+    client = RESTClientObject(configuration)
+
+    retries = client.pool_manager.connection_pool_kw["retries"]
+    assert {
+        "authorization",
+        "cookie",
+        "proxy-authorization",
+    }.issubset(retries.remove_headers_on_redirect)
 
 
 def test_write_request_appends_query_params_to_existing_query_string():

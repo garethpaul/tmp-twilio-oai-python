@@ -20,14 +20,25 @@ Priority:
 - Keep credentials as runtime configuration only
 - Avoid emitting auth headers from missing, blank, or whitespace runtime credentials
 - Avoid sending Basic auth credentials to non-local plain HTTP hosts
+- Apply the Basic auth host guard to operation-level host overrides
+- Keep the dispatch-time host as the single Basic auth authorization decision
+- Preserve operation header precedence over client-wide defaults
+- Preserve case-insensitive header precedence for HTTP-equivalent names
+- Preserve auth header case precedence for generated dispatch credentials
 - Keep generated auth parameter mutation safe when query strings start empty
 - Avoid mutating caller-owned REST request headers
+- Route request bodies from one unambiguous, case-insensitive Content-Type
 - Keep write-method query strings valid when operation URLs already include
   query parameters
 - Preserve repeated query parameter values during write request URL preparation
 - Preserve API exceptions when response bodies are missing or already decoded
 - Normalize urllib3 transport failures through the public API exception type
 - Reject malformed request timeout values before invoking urllib3
+- Keep Twilio response payloads out of generated-client debug logs
+- Text responses use declared charsets with replacement decoding and fall back
+  to UTF-8 replacement for unknown charsets
+- Preloaded responses enforce a configurable decoded body limit while explicit
+  streaming remains caller managed
 - Reject unsupported REST methods before invoking the urllib3 pool manager
 - Keep completed maintenance plans under `docs/plans`
 - Verify the built wheel, not only the source checkout, before publishing
