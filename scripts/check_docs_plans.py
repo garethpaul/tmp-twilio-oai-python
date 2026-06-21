@@ -6,6 +6,61 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 DOCS_PLANS = ROOT / "docs" / "plans"
+
+
+def checkout_steps_disable_persisted_credentials(workflow):
+    lines = workflow.splitlines()
+    checkout_uses = re.compile(r"^(?P<indent>\s*)uses:\s*actions/checkout@[^\s#]+(?:\s+#.*)?$")
+    step_start = re.compile(r"^(?P<indent>\s*)-\s+")
+    with_key = re.compile(r"^(?P<indent>\s*)with:\s*(?:#.*)?$")
+    persist_key = re.compile(r"^(?P<indent>\s*)persist-credentials:\s*(?P<value>[^#\s]+)(?:\s+#.*)?$")
+
+    checkout_indices = [index for index, line in enumerate(lines) if checkout_uses.match(line)]
+    if not checkout_indices:
+        return False
+
+    for checkout_index in checkout_indices:
+        uses_indent = len(checkout_uses.match(lines[checkout_index]).group("indent"))
+        step_indent = None
+        for line in reversed(lines[:checkout_index]):
+            match = step_start.match(line)
+            if match and len(match.group("indent")) < uses_indent:
+                step_indent = len(match.group("indent"))
+                break
+        if step_indent is None:
+            return False
+
+        step_end = len(lines)
+        for index in range(checkout_index + 1, len(lines)):
+            match = step_start.match(lines[index])
+            if match and len(match.group("indent")) == step_indent:
+                step_end = index
+                break
+
+        with_index = None
+        for index in range(checkout_index + 1, step_end):
+            match = with_key.match(lines[index])
+            if match and len(match.group("indent")) == uses_indent:
+                with_index = index
+                break
+        if with_index is None:
+            return False
+
+        values = []
+        for line in lines[with_index + 1 : step_end]:
+            stripped = line.strip()
+            if not stripped or stripped.startswith("#"):
+                continue
+            indent = len(line) - len(line.lstrip())
+            if indent <= uses_indent:
+                break
+            match = persist_key.match(line)
+            if match and len(match.group("indent")) == uses_indent + 2:
+                values.append(match.group("value"))
+        if values != ["false"]:
+            return False
+
+    return True
 CANONICAL_PLAN = DOCS_PLANS / "2026-06-08-tmp-twilio-oai-python-baseline.md"
 QUERY_APPEND_PLAN = DOCS_PLANS / "2026-06-09-write-query-append.md"
 REPEATED_QUERY_PLAN = DOCS_PLANS / "2026-06-09-repeated-write-query-params.md"
@@ -502,13 +557,14 @@ def main():
         "python-version: ['3.10', '3.12', '3.14']",
         "fail-fast: false",
         "actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3",
-        "persist-credentials: false",
         "actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0",
         "run: make check",
     ]
     for contract in workflow_contracts:
         if contract not in workflow:
             failures.append(f"GitHub Actions workflow contract is missing: {contract}")
+    if not checkout_steps_disable_persisted_credentials(workflow):
+        failures.append("every checkout step must set persist-credentials: false directly in its with mapping")
 
     if failures:
         print("Documentation plan checks failed:", file=sys.stderr)

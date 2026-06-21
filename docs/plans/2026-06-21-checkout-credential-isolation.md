@@ -19,7 +19,10 @@ push or otherwise authenticate back to the repository.
 ## Evidence
 
 - The workflow configures `persist-credentials: false` on its only checkout.
-- The documentation-plan checker requires the credential-isolation setting.
+- The documentation-plan checker inspects every active checkout step and
+  requires the credential-isolation setting directly in that step's `with`
+  mapping; comments, unrelated steps, missing guards, and duplicate overrides
+  are rejected.
 - The pinned Python 3.12 repository and external-directory `make check` gates
   passed with 413 tests, package smoke installation, dependency consistency,
   and vulnerability auditing.

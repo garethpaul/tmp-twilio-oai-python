@@ -2,8 +2,9 @@
 
 ## 2026-06-21
 
-- Disabled persisted GitHub checkout credentials and added a repository
-  contract that rejects workflow regressions.
+- Disabled persisted GitHub checkout credentials and added a step-aware
+  repository contract that rejects comments, unrelated settings, missing
+  guards, and duplicate overrides.
 
 ## 2026-06-19
 
