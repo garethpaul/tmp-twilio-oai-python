@@ -502,6 +502,7 @@ def main():
         "python-version: ['3.10', '3.12', '3.14']",
         "fail-fast: false",
         "actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3",
+        "persist-credentials: false",
         "actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0",
         "run: make check",
     ]

@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-06-21
+
+- Disabled persisted GitHub checkout credentials and added a repository
+  contract that rejects workflow regressions.
+
 ## 2026-06-19
 
 - Bound generated Basic auth to the configured request origin and enforced

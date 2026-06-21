@@ -104,7 +104,8 @@ It uses hostile no-network transports and does not make live Twilio requests.
 - `make check` also requires completed canonical plans under `docs/plans`.
 - GitHub Actions runs the same gate on Python 3.10, 3.12, and 3.14 with
   read-only permissions, a fixed Ubuntu 24.04 image, bounded jobs, concurrency
-  cancellation, and immutable action pins.
+  cancellation, immutable action pins, and persisted checkout credentials
+  disabled.
 - The verification requirements upgrade pip to 26.1.2 before auditing because
   hosted Python images may include the vulnerable 26.1.1 release.
 - Obsolete Travis and GitLab matrices for end-of-life Python releases have been
