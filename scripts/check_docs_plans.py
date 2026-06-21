@@ -74,6 +74,7 @@ CONTENT_TYPE_PLAN = DOCS_PLANS / "2026-06-12-content-type-routing.md"
 EFFECTIVE_HOST_AUTH_PLAN = DOCS_PLANS / "2026-06-13-effective-host-basic-auth.md"
 AUTH_MATERIALIZATION_PLAN = DOCS_PLANS / "2026-06-13-effective-host-auth-materialization.md"
 ROOT_CLEANUP_PLAN = DOCS_PLANS / "2026-06-14-make-root-cleanup-protection.md"
+MAKE_AUTHORITY_PLAN = DOCS_PLANS / "2026-06-21-make-cleanup-authority-isolation.md"
 HEADER_PRECEDENCE_PLAN = DOCS_PLANS / "2026-06-14-operation-header-precedence.md"
 CASE_INSENSITIVE_HEADER_PLAN = DOCS_PLANS / "2026-06-14-case-insensitive-header-precedence.md"
 AUTH_HEADER_CASE_PLAN = DOCS_PLANS / "2026-06-14-auth-header-case-precedence.md"
@@ -114,6 +115,8 @@ def main():
         failures.append("docs/plans/2026-06-13-effective-host-auth-materialization.md is missing")
     if not ROOT_CLEANUP_PLAN.exists():
         failures.append("docs/plans/2026-06-14-make-root-cleanup-protection.md is missing")
+    if not MAKE_AUTHORITY_PLAN.exists():
+        failures.append("docs/plans/2026-06-21-make-cleanup-authority-isolation.md is missing")
     if not HEADER_PRECEDENCE_PLAN.exists():
         failures.append("docs/plans/2026-06-14-operation-header-precedence.md is missing")
     if not CASE_INSENSITIVE_HEADER_PLAN.exists():
@@ -481,29 +484,38 @@ def main():
         failures.append("requirements-dev.txt must pin the audited pip version")
 
     makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
-    root_declaration = "override ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))"
     root_assignments = re.findall(r"^(?:override\s+)?ROOT\s*[:+?]?=", makefile, re.MULTILINE)
-    if len(root_assignments) != 1 or makefile.count(root_declaration) != 1:
+    if len(root_assignments) != 1:
         failures.append("Makefile must contain exactly one protected repository-root declaration")
-    if makefile.count(root_declaration + "\nPYTHON ?= python3") != 1:
-        failures.append("Makefile must keep the protected root before the Python override")
     for contract in (
-        ".PHONY: build check lint package-smoke test verify",
+        ".DEFAULT_GOAL := check",
+        ".PHONY: __repository-make-authority build check lint package-smoke root-test test verify",
+        "override PYTHON := $(value PYTHON)",
+        "override SHELL := /bin/sh",
+        "MAKEFLAGS must not be overridden for repository verification",
+        "non-executing or error-ignoring MAKEFLAGS are not supported",
+        "MAKEFILES must be empty",
+        "MAKEFILE_LIST must not be overridden",
+        "build check lint package-smoke root-test test verify: __repository-make-authority",
         "build: lint",
         "package-smoke: build",
-        "verify: lint test package-smoke",
+        "root-test:",
+        '"$$ROOT/scripts/test-makefile-root.sh"',
+        "verify: root-test lint test package-smoke",
         "check: verify",
-        'rm -rf "$(ROOT)/build" "$(ROOT)/dist" "$(ROOT)"/*.egg-info',
-        '$(PYTHON) -m build --no-isolation --outdir "$(ROOT)/dist" "$(ROOT)"',
+        '/bin/rm -rf -- "$$ROOT/build" "$$ROOT/dist" "$$ROOT"/*.egg-info',
+        '"$$PYTHON" -m build --no-isolation --outdir "$$ROOT/dist" "$$ROOT"',
         'scripts/check_package_artifact.py',
-        "env -u PYTHONPATH $(PYTHON) -m pip check",
-        'pip_audit -r "$(ROOT)/requirements.txt"',
+        'env -u PYTHONPATH "$$PYTHON" -m pip check',
+        'pip_audit -r "$$ROOT/requirements.txt"',
     ):
         if contract not in makefile:
             failures.append(f"Makefile verification contract is missing: {contract}")
 
     if "docs/plans/2026-06-14-make-root-cleanup-protection.md" not in (ROOT / "README.md").read_text(encoding="utf-8"):
         failures.append("README must index Make root cleanup protection evidence")
+    if "docs/plans/2026-06-21-make-cleanup-authority-isolation.md" not in (ROOT / "README.md").read_text(encoding="utf-8"):
+        failures.append("README must index Make cleanup authority isolation evidence")
     if "docs/plans/2026-06-14-operation-header-precedence.md" not in (ROOT / "README.md").read_text(encoding="utf-8"):
         failures.append("README must index operation header precedence evidence")
     if "docs/plans/2026-06-14-case-insensitive-header-precedence.md" not in (ROOT / "README.md").read_text(encoding="utf-8"):
@@ -558,7 +570,7 @@ def main():
         "fail-fast: false",
         "actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3",
         "actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0",
-        "run: make check",
+        "run: /usr/bin/make check",
     ]
     for contract in workflow_contracts:
         if contract not in workflow:

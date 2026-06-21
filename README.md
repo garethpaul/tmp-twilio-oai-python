@@ -67,7 +67,9 @@ It uses hostile no-network transports and does not make live Twilio requests.
   wheel, dependency consistency checks, and a security audit of the declared
   runtime dependency graph, including transitive dependencies. Ambient
   `PYTHONPATH` entries are excluded from dependency verification. The suite has
-  413 offline tests.
+  419 offline tests and an adversarial Make trust-boundary test that protects
+  package cleanup from caller-controlled roots, shells, startup files, flags,
+  and executable syntax. Hosted verification invokes `/usr/bin/make` directly.
 - The pytest suite includes no-network checks for default host configuration
   and runtime-only, trimmed, non-empty Basic auth headers. It also covers API
   exception body handling so client errors are not masked by response decoding,
@@ -164,6 +166,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   parameter-aware request encoder selection.
 - See `docs/plans/2026-06-14-make-root-cleanup-protection.md` for authoritative
   repository-root and package-cleanup selection across all Make aliases.
+- See `docs/plans/2026-06-21-make-cleanup-authority-isolation.md` for executable
+  cleanup sentinels and Make startup/flag/tool trust-boundary coverage.
 - See `docs/plans/2026-06-14-operation-header-precedence.md` for request-specific
   header precedence at the API dispatch boundary.
 - See `docs/plans/2026-06-14-case-insensitive-header-precedence.md` for

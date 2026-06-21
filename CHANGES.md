@@ -5,6 +5,10 @@
 - Disabled persisted GitHub checkout credentials and added a step-aware
   repository contract that rejects comments, unrelated settings, missing
   guards, and duplicate overrides.
+- Isolated destructive package cleanup and verification from caller-controlled
+  Make roots, shells, startup files, non-executing modes, and tool syntax.
+- Added adversarial cleanup sentinels and pinned hosted verification to
+  `/usr/bin/make`.
 
 ## 2026-06-19
 
