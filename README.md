@@ -97,13 +97,15 @@ It uses hostile no-network transports and does not make live Twilio requests.
   non-positive, boolean, and non-finite values fail before network work.
 - REST debug logging records only response status and byte count; response and
   error bodies remain available to callers without being copied into logs.
-- Text responses use declared charsets with replacement decoding and fall back
-  to UTF-8 replacement for unknown charsets.
+- Successful and error text responses use declared charsets with replacement
+  decoding and fall back to UTF-8 replacement for unknown charsets.
 - Preloaded responses enforce a configurable decoded body limit through
   `Configuration.max_response_body_size`, defaulting to 5 MiB; oversized
   responses are closed while explicit successful streaming stays caller
   managed. Streaming error responses are closed without reading their bodies.
 - `make check` also requires completed canonical plans under `docs/plans`.
+- See `docs/plans/2026-06-25-error-response-charset.md` for declared-charset
+  decoding of byte-backed API exception bodies.
 - GitHub Actions runs the same gate on Python 3.10, 3.12, and 3.14 with
   read-only permissions, a fixed Ubuntu 24.04 image, bounded jobs, concurrency
   cancellation, immutable action pins, and persisted checkout credentials

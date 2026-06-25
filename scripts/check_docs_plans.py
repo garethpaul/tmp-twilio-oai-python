@@ -79,6 +79,7 @@ HEADER_PRECEDENCE_PLAN = DOCS_PLANS / "2026-06-14-operation-header-precedence.md
 CASE_INSENSITIVE_HEADER_PLAN = DOCS_PLANS / "2026-06-14-case-insensitive-header-precedence.md"
 AUTH_HEADER_CASE_PLAN = DOCS_PLANS / "2026-06-14-auth-header-case-precedence.md"
 RESPONSE_CHARSET_PLAN = DOCS_PLANS / "2026-06-15-response-charset-fallback.md"
+ERROR_RESPONSE_CHARSET_PLAN = DOCS_PLANS / "2026-06-25-error-response-charset.md"
 RESPONSE_BODY_LIMIT_PLAN = DOCS_PLANS / "2026-06-16-response-body-size-limit.md"
 ARTIFACT_CHECKER = ROOT / "scripts" / "check_package_artifact.py"
 REQUEST_HEADERS_TEST = ROOT / "test" / "test_rest_request_headers.py"
@@ -125,8 +126,31 @@ def main():
         failures.append("docs/plans/2026-06-14-auth-header-case-precedence.md is missing")
     if not RESPONSE_CHARSET_PLAN.exists():
         failures.append("docs/plans/2026-06-15-response-charset-fallback.md is missing")
+    if not ERROR_RESPONSE_CHARSET_PLAN.exists():
+        failures.append("docs/plans/2026-06-25-error-response-charset.md is missing")
     if not RESPONSE_BODY_LIMIT_PLAN.exists():
         failures.append("docs/plans/2026-06-16-response-body-size-limit.md is missing")
+
+    api_exception_tests = ROOT / "test" / "test_api_exception_body.py"
+    if not api_exception_tests.exists():
+        failures.append("test/test_api_exception_body.py is missing")
+    else:
+        exception_test_text = api_exception_tests.read_text(encoding="utf-8")
+        for contract in [
+            "test_api_exception_bytes_honor_declared_response_charset",
+            "test_api_exception_unknown_charset_falls_back_to_utf8_replacement",
+        ]:
+            if contract not in exception_test_text:
+                failures.append(f"error response charset regression contract is missing: {contract}")
+
+    api_client_source = (ROOT / "openapi_client" / "api_client.py").read_text(encoding="utf-8")
+    for contract in [
+        "def response_header_value(headers, name):",
+        "content_type = response_header_value(e.headers, 'content-type')",
+        "e.body = decode_response_text(e.body, encoding)",
+    ]:
+        if contract not in api_client_source:
+            failures.append(f"error response charset source contract is missing: {contract}")
     if not REQUEST_HEADERS_TEST.exists():
         failures.append("test/test_rest_request_headers.py is missing")
 
@@ -553,7 +577,7 @@ def main():
             failures.append(f"{relative_path} must document case-insensitive header precedence")
         if "auth header case precedence" not in (ROOT / relative_path).read_text(encoding="utf-8").lower():
             failures.append(f"{relative_path} must document auth header case precedence")
-        if "text responses use declared charsets with replacement decoding" not in (ROOT / relative_path).read_text(encoding="utf-8").lower():
+        if "successful and error text responses use declared charsets with replacement" not in (ROOT / relative_path).read_text(encoding="utf-8").lower():
             failures.append(f"{relative_path} must document response charset fallback")
         if "preloaded responses enforce a configurable decoded body limit" not in (ROOT / relative_path).read_text(encoding="utf-8").lower():
             failures.append(f"{relative_path} must document the preloaded response body limit")

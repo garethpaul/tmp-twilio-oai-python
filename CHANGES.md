@@ -1,5 +1,13 @@
 # Changes
 
+## 2026-06-25 07:11 PDT
+
+- Decoded byte-backed API exception bodies with their declared response
+  charset instead of forcing UTF-8 and corrupting non-ASCII provider details.
+- Successful and error text responses use declared charsets with replacement
+  decoding and UTF-8 fallback for missing or unknown codecs.
+- Added focused runtime plus dependency-free contracts for the error path.
+
 ## 2026-06-21
 
 - Disabled persisted GitHub checkout credentials and added a step-aware

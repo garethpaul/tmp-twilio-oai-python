@@ -55,6 +55,16 @@ def response_text_encoding(content_type):
     return message.get_content_charset() or "utf-8"
 
 
+def response_header_value(headers, name):
+    if not headers or not hasattr(headers, "items"):
+        return None
+    normalized_name = name.lower()
+    for header_name, value in headers.items():
+        if isinstance(header_name, str) and header_name.lower() == normalized_name:
+            return value
+    return None
+
+
 class ApiClient(object):
     """Generic API client for OpenAPI client library builds.
 
@@ -235,7 +245,9 @@ class ApiClient(object):
                 _request_timeout=_request_timeout)
         except ApiException as e:
             if isinstance(e.body, bytes):
-                e.body = e.body.decode('utf-8', errors='replace')
+                content_type = response_header_value(e.headers, 'content-type')
+                encoding = response_text_encoding(content_type)
+                e.body = decode_response_text(e.body, encoding)
             raise
 
         content_type = response_data.getheader('content-type')
