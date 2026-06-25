@@ -46,7 +46,7 @@
 ## Safety and gotchas
 
 - Detected references to Twilio. Keep API keys, OAuth credentials, tokens, and account-specific values in local configuration only.
-- Text responses use declared charsets with replacement decoding and fall back to UTF-8 replacement for unknown charsets.
+- Successful and error text responses use declared charsets with replacement decoding and fall back to UTF-8 replacement for unknown charsets.
 - Preloaded responses enforce a configurable 5 MiB decoded body limit by default; use explicit streaming for intentional larger transfers.
 - See `SECURITY.md` for vulnerability reporting and safe research guidance.
 - See `VISION.md` for project direction and contribution guardrails.

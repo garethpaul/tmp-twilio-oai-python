@@ -55,8 +55,8 @@ Helpful reports include:
   request configuration cannot silently become an unbounded/default request.
 - REST debug diagnostics record response status and byte count without copying
   Twilio success or error payloads into logs.
-- Text responses use declared charsets with replacement decoding and fall back
-  to UTF-8 replacement for unknown charsets.
+- Successful and error text responses use declared charsets with replacement
+  decoding and fall back to UTF-8 replacement for unknown charsets.
 - Preloaded responses enforce a configurable decoded body limit so compressed
   or unexpectedly large payloads cannot be accumulated without a fixed bound;
   caller-managed streaming remains available for intentional large transfers.
