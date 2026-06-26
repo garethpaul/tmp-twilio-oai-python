@@ -336,7 +336,7 @@ class RESTClientObject(object):
                 "Unsupported HTTP method: {0}".format(method)
             )
 
-        if post_params and body:
+        if post_params and body is not None:
             raise ApiValueError(
                 "body parameter cannot be used with post_params parameter."
             )

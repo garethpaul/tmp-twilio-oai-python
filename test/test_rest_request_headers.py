@@ -267,3 +267,19 @@ def test_request_rejects_unsupported_method_before_pool_request():
         client.request("TRACE", "https://api.twilio.com/2010-04-01/Messages.json")
 
     assert client.pool_manager.calls == []
+
+
+@pytest.mark.parametrize("body", [False, 0, "", b"", {}, []])
+def test_request_rejects_falsey_body_with_post_params(body):
+    client = client_with_capturing_pool()
+
+    with pytest.raises(ApiValueError, match="body parameter cannot be used with post_params"):
+        client.request(
+            "POST",
+            "https://api.twilio.com/2010-04-01/Messages.json",
+            headers={"Content-Type": "application/json"},
+            body=body,
+            post_params=[("Body", "hello")],
+        )
+
+    assert client.pool_manager.calls == []

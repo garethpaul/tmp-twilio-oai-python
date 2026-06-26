@@ -28,6 +28,8 @@ Priority:
 - Keep generated auth parameter mutation safe when query strings start empty
 - Avoid mutating caller-owned REST request headers
 - Route request bodies from one unambiguous, case-insensitive Content-Type
+- Reject form fields combined with any explicitly supplied request body,
+  including falsey values
 - Keep write-method query strings valid when operation URLs already include
   query parameters
 - Preserve repeated query parameter values during write request URL preparation

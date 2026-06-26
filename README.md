@@ -89,7 +89,9 @@ It uses hostile no-network transports and does not make live Twilio requests.
   REST request tests
   also ensure write methods append query parameters to existing query strings
   with `&`, preserve repeated query parameter values, and reject unsupported
-  HTTP methods before invoking urllib3.
+  HTTP methods before invoking urllib3. Form fields cannot be combined with any
+  explicitly supplied body, including falsey JSON values, so one request
+  representation cannot be silently discarded.
 - REST transport tests verify timeouts and other urllib3 failures surface
   through the generated client's `ApiException` contract with their cause kept.
 - REST request timeout validation accepts positive numeric totals or two-item
@@ -178,6 +180,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   credential precedence over differently cased operation headers.
 - See `docs/plans/2026-06-16-response-body-size-limit.md` for bounded decoded
   response preloading and transport cleanup coverage.
+- See `docs/plans/2026-06-26-falsey-body-form-conflicts.md` for request-body
+  presence validation when form fields are also supplied.
 
 ## Contributing
 
