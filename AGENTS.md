@@ -48,6 +48,9 @@
 - Detected references to Twilio. Keep API keys, OAuth credentials, tokens, and account-specific values in local configuration only.
 - Successful and error text responses use declared charsets with replacement decoding and fall back to UTF-8 replacement for unknown charsets.
 - Preloaded responses enforce a configurable 5 MiB decoded body limit by default; use explicit streaming for intentional larger transfers.
+- REST requests reject form fields combined with any explicitly supplied body,
+  including falsey JSON values such as `false`, `0`, empty strings, or empty
+  containers.
 - See `SECURITY.md` for vulnerability reporting and safe research guidance.
 - See `VISION.md` for project direction and contribution guardrails.
 - See `docs/plans/2026-06-08-tmp-twilio-oai-python-baseline.md` for the canonical generated-client verification baseline.

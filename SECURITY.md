@@ -7,7 +7,9 @@ configured origin. Request URL userinfo and header control characters are
 rejected before dispatch, and sensitive headers remain stripped on cross-host
 redirects even with caller-supplied retry policies. Preloaded response bodies
 are bounded; successful explicit streaming is caller-managed and intentionally
-outside that limit.
+outside that limit. Conflicting form fields and explicitly supplied bodies are
+rejected by presence rather than truthiness, preventing falsey body values from
+silently changing the transmitted representation.
 
 These controls are verified with offline fake transports. They have not been
 validated with live Twilio credentials or production Twilio traffic.

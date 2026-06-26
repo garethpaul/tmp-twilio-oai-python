@@ -1,5 +1,52 @@
 # Changes
 
+## 2026-06-26 02:50 PDT - P2 - Reject falsey body/form conflicts
+
+### Summary
+Hardened REST request preparation so form fields cannot be combined with an
+explicitly supplied body merely because that body is falsey.
+
+### Work completed
+- Replaced the body truthiness conflict check with explicit presence semantics.
+- Covered `False`, `0`, empty text, empty bytes, empty mappings, and empty lists.
+- Preserved requests that supply form fields with the default `body=None`.
+- Prevented silent form-field loss and an unwrapped JSON serialization failure
+  before urllib3 dispatch.
+- Bound the invariant into source and test maintenance contracts.
+
+### Threads
+- Started: none.
+- Continued: generated REST request integrity — body/form exclusivity complete.
+- Stopped: none.
+
+### Files changed
+- `openapi_client/rest.py` — rejects form parameters with every present body.
+- `test/test_rest_request_headers.py` — adds six no-network falsey-body cases.
+- `scripts/check_docs_plans.py` — preserves the source, test, and plan contracts.
+- Documentation and plan files — record behavior and offline validation scope.
+
+### Validation
+- Red-first focused pytest — all six cases bypassed the old guard; five silently
+  discarded form fields and empty bytes raised a raw JSON `TypeError`.
+- Focused request-routing tests — twelve passed after implementation.
+- Truthiness-restoration mutation — rejected with all six regressions failing.
+- `make check PYTHON=.venv/bin/python` — passed with 427 tests, source/wheel
+  builds, isolated wheel import, `pip check`, and zero known audit findings.
+- The same complete gate passed under `C`, `C.UTF-8`, and from `/tmp` through
+  the absolute Makefile path.
+- Python compilation and `git diff --check` — passed.
+- Hosted Python/CodeQL exact-head checks and review remain the next action.
+
+### Bugs / findings
+- P2: `post_params and body` treated falsey bodies as absent, violating the
+  documented one-representation request boundary.
+
+### Blockers
+- None; validation uses offline fake transports and no Twilio credentials.
+
+### Next action
+- Open the focused PR, run exact-head hosted validation and review, then merge.
+
 ## 2026-06-25 07:11 PDT
 
 - Decoded byte-backed API exception bodies with their declared response
