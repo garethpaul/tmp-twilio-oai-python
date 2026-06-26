@@ -283,3 +283,32 @@ def test_request_rejects_falsey_body_with_post_params(body):
         )
 
     assert client.pool_manager.calls == []
+
+
+@pytest.mark.parametrize("method", ["GET", "HEAD"])
+@pytest.mark.parametrize("body", [False, 0, "", b"", {}, []])
+def test_read_request_rejects_explicit_body_before_transport(method, body):
+    client = client_with_capturing_pool()
+
+    with pytest.raises(ApiValueError, match="GET and HEAD requests cannot include a body"):
+        client.request(
+            method,
+            "https://api.twilio.com/2010-04-01/Accounts.json",
+            body=body,
+        )
+
+    assert client.pool_manager.calls == []
+
+
+@pytest.mark.parametrize("method", ["GET", "HEAD"])
+def test_read_request_rejects_form_fields_before_transport(method):
+    client = client_with_capturing_pool()
+
+    with pytest.raises(ApiValueError, match="GET and HEAD requests cannot include form fields"):
+        client.request(
+            method,
+            "https://api.twilio.com/2010-04-01/Accounts.json",
+            post_params=[("PageSize", "50")],
+        )
+
+    assert client.pool_manager.calls == []

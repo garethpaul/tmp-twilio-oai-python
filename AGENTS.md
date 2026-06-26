@@ -51,6 +51,8 @@
 - REST requests reject form fields combined with any explicitly supplied body,
   including falsey JSON values such as `false`, `0`, empty strings, or empty
   containers.
+- REST `GET` and `HEAD` requests reject explicitly supplied bodies or form
+  fields instead of silently discarding them.
 - See `SECURITY.md` for vulnerability reporting and safe research guidance.
 - See `VISION.md` for project direction and contribution guardrails.
 - See `docs/plans/2026-06-08-tmp-twilio-oai-python-baseline.md` for the canonical generated-client verification baseline.
