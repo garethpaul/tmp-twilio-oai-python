@@ -82,6 +82,7 @@ RESPONSE_CHARSET_PLAN = DOCS_PLANS / "2026-06-15-response-charset-fallback.md"
 ERROR_RESPONSE_CHARSET_PLAN = DOCS_PLANS / "2026-06-25-error-response-charset.md"
 RESPONSE_BODY_LIMIT_PLAN = DOCS_PLANS / "2026-06-16-response-body-size-limit.md"
 FALSEY_BODY_CONFLICT_PLAN = DOCS_PLANS / "2026-06-26-falsey-body-form-conflicts.md"
+READ_METHOD_BODY_PLAN = DOCS_PLANS / "2026-06-26-read-method-body-rejection.md"
 ARTIFACT_CHECKER = ROOT / "scripts" / "check_package_artifact.py"
 REQUEST_HEADERS_TEST = ROOT / "test" / "test_rest_request_headers.py"
 AUTH_CONFIGURATION_TEST = ROOT / "test" / "test_auth_configuration.py"
@@ -133,6 +134,8 @@ def main():
         failures.append("docs/plans/2026-06-16-response-body-size-limit.md is missing")
     if not FALSEY_BODY_CONFLICT_PLAN.exists():
         failures.append("docs/plans/2026-06-26-falsey-body-form-conflicts.md is missing")
+    if not READ_METHOD_BODY_PLAN.exists():
+        failures.append("docs/plans/2026-06-26-read-method-body-rejection.md is missing")
 
     api_exception_tests = ROOT / "test" / "test_api_exception_body.py"
     if not api_exception_tests.exists():
@@ -303,6 +306,8 @@ def main():
         failures.append("openapi_client/rest.py must raise a clear unsupported-method error")
     if "if post_params and body is not None:" not in rest:
         failures.append("REST requests must reject post_params with any present body, including falsey values")
+    if "if method in ('GET', 'HEAD'):" not in rest:
+        failures.append("REST GET and HEAD requests must own a body-free dispatch boundary")
     if "except urllib3.exceptions.HTTPError as e:" not in rest:
         failures.append("openapi_client/rest.py must normalize urllib3 transport errors")
     if rest.count("raise ApiException(status=0, reason=msg) from e") < 2:
@@ -338,6 +343,12 @@ def main():
             failures.append(f"REST Content-Type coverage is missing: {test_name}")
     if "def test_request_rejects_falsey_body_with_post_params(" not in request_headers_test:
         failures.append("REST falsey body/form conflict coverage is missing")
+    for test_name in (
+        "test_read_request_rejects_explicit_body_before_transport",
+        "test_read_request_rejects_form_fields_before_transport",
+    ):
+        if f"def {test_name}(" not in request_headers_test:
+            failures.append(f"REST read-method body coverage is missing: {test_name}")
     if 'logger.debug("response body: %s", r.data)' in rest:
         failures.append("REST debug logging must not emit response bodies")
     if '"response received: status=%s bytes=%s"' not in rest:

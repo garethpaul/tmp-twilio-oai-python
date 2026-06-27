@@ -336,6 +336,16 @@ class RESTClientObject(object):
                 "Unsupported HTTP method: {0}".format(method)
             )
 
+        if method in ('GET', 'HEAD'):
+            if body is not None:
+                raise ApiValueError(
+                    "GET and HEAD requests cannot include a body."
+                )
+            if post_params:
+                raise ApiValueError(
+                    "GET and HEAD requests cannot include form fields."
+                )
+
         if post_params and body is not None:
             raise ApiValueError(
                 "body parameter cannot be used with post_params parameter."

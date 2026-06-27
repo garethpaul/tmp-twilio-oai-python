@@ -1,5 +1,47 @@
 # Changes
 
+## 2026-06-26 17:05 PDT - P1 - Reject discarded GET and HEAD bodies
+
+### Summary
+Stopped the REST client from silently discarding explicitly supplied bodies or
+form fields on `GET` and `HEAD` requests.
+
+### Work completed
+- Added fourteen red-first no-network body and form-field regressions.
+- Rejected every present body, including falsey JSON values, before dispatch.
+- Rejected non-empty form fields while preserving query parameters.
+- Bound the source, tests, plan, and generated-client maintenance guidance.
+
+### Threads
+- Started: none.
+- Continued: generated REST request ownership hardening.
+- Stopped: none.
+
+### Files changed
+- `openapi_client/rest.py` — owns the body-free read-method boundary.
+- `test/test_rest_request_headers.py` — covers GET/HEAD body loss.
+- `scripts/check_docs_plans.py` — preserves the regression contracts.
+- Documentation and plan files — record behavior and regeneration scope.
+
+### Validation
+- Focused pytest — all fourteen cases failed before implementation because the
+  pool manager was called without the supplied data.
+- `make check PYTHON=.venv/bin/python` — passed 441 tests, source/wheel builds,
+  isolated wheel import, `pip check`, and zero known audit findings.
+- The complete gate also passed from `/tmp` through the absolute Makefile path.
+- Python compilation, documentation contracts, and `git diff --check` — passed.
+- Hosted exact-head validation remains next.
+
+### Bugs / findings
+- P1 correctness: callers could receive a successful GET or HEAD response even
+  though explicitly supplied request data was never transmitted.
+
+### Blockers
+- None; tests use an offline capturing transport and no credentials.
+
+### Next action
+- Run the complete package gate, review the exact head, and merge the PR.
+
 ## 2026-06-26 02:50 PDT - P2 - Reject falsey body/form conflicts
 
 ### Summary

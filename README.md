@@ -182,6 +182,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   response preloading and transport cleanup coverage.
 - See `docs/plans/2026-06-26-falsey-body-form-conflicts.md` for request-body
   presence validation when form fields are also supplied.
+- See `docs/plans/2026-06-26-read-method-body-rejection.md` for the body-free
+  GET and HEAD dispatch boundary.
 
 ## Contributing
 
