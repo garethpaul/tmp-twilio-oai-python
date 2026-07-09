@@ -546,7 +546,7 @@ def main():
         "verify: root-test lint test package-smoke",
         "check: verify",
         '/bin/rm -rf -- "$$ROOT/build" "$$ROOT/dist" "$$ROOT"/*.egg-info',
-        '"$$PYTHON" -m build --no-isolation --outdir "$$ROOT/dist" "$$ROOT"',
+        '"$$PYTHON" -m build --outdir "$$ROOT/dist" "$$ROOT"',
         'scripts/check_package_artifact.py',
         'env -u PYTHONPATH "$$PYTHON" -m pip check',
         'pip_audit -r "$$ROOT/requirements.txt"',

@@ -65,7 +65,7 @@ test:
 
 build: lint
 	/bin/rm -rf -- "$$ROOT/build" "$$ROOT/dist" "$$ROOT"/*.egg-info
-	"$$PYTHON" -m build --no-isolation --outdir "$$ROOT/dist" "$$ROOT"
+	"$$PYTHON" -m build --outdir "$$ROOT/dist" "$$ROOT"
 
 package-smoke: build
 	"$$PYTHON" "$$ROOT/scripts/check_package_artifact.py"
