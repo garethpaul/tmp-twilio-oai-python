@@ -1,5 +1,25 @@
 # Changes
 
+## 2026-07-09 - P2 - Isolate Python package builds
+
+### Summary
+Run `python -m build` in an isolated backend environment so local ambient
+packages (for example broken `pbr`/`pkg_resources` combinations) cannot break
+source and wheel creation during `make check`.
+
+### Work completed
+- Removed `--no-isolation` from the Makefile build target.
+- Updated the Makefile verification contract in `scripts/check_docs_plans.py`.
+- Recorded the isolation plan under `docs/plans`.
+
+### Validation
+- `make check` after the change.
+
+### Bugs / findings
+- Non-isolated builds failed on a host where setuptools egg_info loaded ambient
+  `pbr` and then crashed on missing `pkg_resources`. Hosted CI already
+  succeeded because runners lack that ambient package set.
+
 ## 2026-06-26 17:05 PDT - P1 - Reject discarded GET and HEAD bodies
 
 ### Summary
